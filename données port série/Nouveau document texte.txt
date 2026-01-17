@@ -1,0 +1,212 @@
+[15/01/2026 14:18:01] Written data (COM2) 
+    04 02 30 38 03                                    ..08.            
+[15/01/2026 14:18:02] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:18:40] - Close port COM2 
+ 
+[15/01/2026 14:18:40] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:18:40] - Close port COM2 
+ 
+[15/01/2026 14:18:42] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:18:49] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:18:49] Read data (COM2) 
+    15                                                .                
+[15/01/2026 14:18:52] Written data (COM2) 
+    04 02 30 38 03                                    ..08.            
+[15/01/2026 14:18:52] Read data (COM2) 
+    02 b0 b9 9b 31 31 83                              .°¹›11ƒ          
+[15/01/2026 14:19:17] - Close port COM2 
+ 
+[15/01/2026 14:19:18] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:19:18] - Close port COM2 
+ 
+[15/01/2026 14:19:20] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:19:22] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:19:22] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:19:24] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:19:24] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:19:24] Written data (COM2) 
+    04 02 30 38 03                                    ..08.            
+[15/01/2026 14:19:25] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:19:50] - Close port COM2 
+ 
+[15/01/2026 14:19:51] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:19:51] - Close port COM2 
+ 
+[15/01/2026 14:19:52] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:19:54] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:19:54] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:20:01] Written data (COM2) 
+    04 02 30 38 03                                    ..08.            
+[15/01/2026 14:20:01] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:20:04] Written data (COM2) 
+    04 02 30 31 1b 32 30 32 35 30 1b 03               ..01.20250..     
+[15/01/2026 14:20:04] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:20:07] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:20:07] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:20:28] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:20:28] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:20:48] - Close port COM2 
+ 
+[15/01/2026 14:20:49] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:20:49] - Close port COM2 
+ 
+[15/01/2026 14:20:51] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:20:55] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:20:55] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:21:00] Written data (COM2) 
+    04 02 30 38 03                                    ..08.            
+[15/01/2026 14:21:00] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:21:19] - Close port COM2 
+ 
+[15/01/2026 14:21:20] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:21:20] - Close port COM2 
+ 
+[15/01/2026 14:21:21] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:21:23] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:21:28] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:22:00] - Close port COM2 
+ 
+[15/01/2026 14:22:01] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:22:01] - Close port COM2 
+ 
+[15/01/2026 14:22:03] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:22:42] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:22:43] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:22:49] Written data (COM2) 
+    04 02 30 38 03                                    ..08.            
+[15/01/2026 14:22:49] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:22:59] - Close port COM2 
+ 
+[15/01/2026 14:23:00] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:23:00] - Close port COM2 
+ 
+[15/01/2026 14:23:02] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:23:03] Written data (COM2) 
+    04 02 30 31 1b 32 30 32 35 30 1b 03               ..01.20250..     
+[15/01/2026 14:23:03] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:23:05] Written data (COM2) 
+    04 02 30 38 03                                    ..08.            
+[15/01/2026 14:23:05] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:23:54] - Close port COM2 
+ 
+[15/01/2026 14:23:54] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:23:54] - Close port COM2 
+ 
+[15/01/2026 14:23:56] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:23:58] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:23:58] Read data (COM2) 
+    15                                                .                
+[15/01/2026 14:24:01] Written data (COM2) 
+    04 02 30 38 03                                    ..08.            
+[15/01/2026 14:24:01] Read data (COM2) 
+    02 b0 b9 9b 31 31 83                              .°¹›11ƒ          
+[15/01/2026 14:24:32] - Close port COM2 
+ 
+[15/01/2026 14:24:33] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:24:33] - Close port COM2 
+ 
+[15/01/2026 14:24:35] - Open port COM2 (C:\Users\Oxhoo\AppData\Local\WebApp Hardware Bridge\jre\bin\java.exe) 
+ 
+[15/01/2026 14:24:40] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:24:40] Read data (COM2) 
+    15 7f                                             .               
+[15/01/2026 14:24:54] - Close port COM2 
+ 
+[15/01/2026 14:25:04] - Open port COM2 (C:\atoo_leo250\LEO250.exe) 
+ 
+[15/01/2026 14:25:04] Written data (COM2) 
+    04 02 30 31 1b 30 30 32 38 30 30 1b 03            ..01.002800..    
+[15/01/2026 14:25:05] Read data (COM2) 
+    06                                                .                
+[15/01/2026 14:25:05] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:25:05] Read data (COM2) 
+    02 30 32 1b 33 1b 30 30 32 36 32 1b 30 30 32 38   .02.3.00262.0028 
+    30 30 1b 30 30 30 37 33 34 03                     00.000734.       
+[15/01/2026 14:25:05] Written data (COM2) 
+    04                                                .                
+[15/01/2026 14:25:05] - Close port COM2 
+ 
+[15/01/2026 14:25:14] - Open port COM2 (C:\atoo_leo250\LEO250.exe) 
+ 
+[15/01/2026 14:25:14] Written data (COM2) 
+    04 02 30 31 1b 30 30 32 35 30 30 1b 03            ..01.002500..    
+[15/01/2026 14:25:14] Read data (COM2) 
+    06                                                .                
+[15/01/2026 14:25:15] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:25:15] Read data (COM2) 
+    15                                                .                
+[15/01/2026 14:25:15] - Close port COM2 
+ 
+[15/01/2026 14:25:34] - Open port COM2 (C:\atoo_leo250\LEO250.exe) 
+ 
+[15/01/2026 14:25:34] Written data (COM2) 
+    04 02 30 31 1b 30 30 32 33 30 30 1b 03            ..01.002300..    
+[15/01/2026 14:25:34] Read data (COM2) 
+    06                                                .                
+[15/01/2026 14:25:34] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:25:34] Read data (COM2) 
+    15                                                .                
+[15/01/2026 14:25:34] - Close port COM2 
+ 
+[15/01/2026 14:25:56] - Open port COM2 (C:\atoo_leo250\LEO250.exe) 
+ 
+[15/01/2026 14:25:56] Written data (COM2) 
+    04 02 30 31 1b 30 30 32 35 30 30 1b 03            ..01.002500..    
+[15/01/2026 14:25:56] Read data (COM2) 
+    06                                                .                
+[15/01/2026 14:25:56] Written data (COM2) 
+    04 05                                             ..               
+[15/01/2026 14:25:57] Read data (COM2) 
+    02 30 32 1b 33 1b 30 30 32 37 32 1b 30 30 32 35   .02.3.00272.0025 
+    30 30 1b 30 30 30 36 38 30 03                     00.000680.       
+[15/01/2026 14:25:57] Written data (COM2) 
+    04                                                .                
+[15/01/2026 14:25:57] - Close port COM2 
+ 
