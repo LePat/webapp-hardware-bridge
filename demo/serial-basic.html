@@ -35,8 +35,9 @@
         const $output = document.getElementById("output");
 
         const serial = new WebSocketSerial({
-            url: 'ws://127.0.0.1:12212/serial/DISPLAY',
+            url: 'ws://127.0.0.1:12212/serial/DISPLAYER',
             onMessage: function (message) {
+            	console.log("onMessage: " + message);
                 $output.value = $output.value + message;
             }
         });

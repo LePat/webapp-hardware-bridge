@@ -18,17 +18,21 @@ function WebSocketWeigh(options) {
 
     var onMessage = function (evt) {
         var chr = evt.data;
+		//console.log("data: " + chr);
         if (chr == "\n") {
             var weightOutput = settings.weightRegex.exec(buffer);
             var stableOutput = settings.stableRegex.test(buffer);
 
             if (weightOutput != null) {
                 settings.onUpdate(weightOutput[1], stableOutput);
-            }
+            } else {
+				console.log("buffer: " + buffer);
+			}
             buffer = '';
         } else {
             buffer = buffer + chr;
         }
+		//console.log("buffer: " + buffer);
     };
 
     var onConnect = function () {

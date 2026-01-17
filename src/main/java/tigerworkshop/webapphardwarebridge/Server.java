@@ -172,6 +172,80 @@ public class Server implements WebSocketServerInterface {
                 }
             });
         }
+        
+        // Add Console WebSocket Service
+        String channel = "console";
+        javalinServer.ws(channel, ws -> {
+            ws.onConnect(ctx -> {
+                log.info("{} connected to {}", ctx.host(), channel);
+
+                addSocketToChannel(channel, ctx);
+            });
+
+            ws.onClose(ctx -> {
+                log.info("{} disconnected from {}", ctx.host(), channel);
+
+                removeSocketFromChannel(channel, ctx);
+            });
+
+            ws.onMessage(ctx -> {
+                log.info("{} sent message to {}: {}", ctx.host(), channel, ctx.message());
+                getSocketsForChannel(channel).forEach(client -> client.send(ctx.message()));
+            });
+
+            ws.onBinaryMessage(ctx -> {
+                log.info("{} sent binary message to {}: {}", ctx.host(), channel, ctx.data());
+                getSocketsForChannel(channel).forEach(client -> client.send(ctx.data()));
+            });
+        });
+        
+        // Add TakePOS WebSocket Service
+        String channelTakePOS = "takepos";
+        String channelBalance = "balance";
+        javalinServer.ws(channelTakePOS, ws -> {
+            ws.onConnect(ctx -> {
+                log.info("{} connected to {}", ctx.host(), channelTakePOS);
+                addSocketToChannel(channelTakePOS, ctx);
+            });
+
+            ws.onClose(ctx -> {
+                log.info("{} disconnected from {}", ctx.host(), channelTakePOS);
+                removeSocketFromChannel(channelTakePOS, ctx);
+            });
+
+            ws.onMessage(ctx -> {
+                log.info("{} sent message to {}: {}", ctx.host(), channelTakePOS, ctx.message());
+                getSocketsForChannel(channelBalance).forEach(client -> client.send(ctx.message()));
+            });
+
+            ws.onBinaryMessage(ctx -> {
+                log.info("{} sent binary message to {}: {}", ctx.host(), channelTakePOS, ctx.data());
+                getSocketsForChannel(channelBalance).forEach(client -> client.send(ctx.data()));
+            });
+        });
+        
+        // Add Balance WebSocket Service
+        javalinServer.ws(channelBalance, ws -> {
+            ws.onConnect(ctx -> {
+                log.info("{} connected to {}", ctx.host(), channelBalance);
+                addSocketToChannel(channelBalance, ctx);
+            });
+
+            ws.onClose(ctx -> {
+                log.info("{} disconnected from {}", ctx.host(), channelBalance);
+                removeSocketFromChannel(channelBalance, ctx);
+            });
+
+            ws.onMessage(ctx -> {
+                log.info("{} sent message to {}: {}", ctx.host(), channelBalance, ctx.message());
+                getSocketsForChannel(channelTakePOS).forEach(client -> client.send(ctx.message()));
+            });
+
+            ws.onBinaryMessage(ctx -> {
+                log.info("{} sent binary message to {}: {}", ctx.host(), channelBalance, ctx.data());
+                getSocketsForChannel(channelTakePOS).forEach(client -> client.send(ctx.data()));
+            });
+        });
 
         // Add HTTP Auth
         javalinServer.before(ctx -> {
@@ -305,7 +379,7 @@ public class Server implements WebSocketServerInterface {
     public void messageToService(String channel, String message) {
         ConcurrentLinkedQueue<WebSocketServiceInterface> services = getServicesForChannel(channel);
         for (WebSocketServiceInterface service : services) {
-            log.debug("Sending: {} to channel: {}, service = {}", message, channel, service.getClass().getSimpleName());
+            log.info("Sending message: {} to channel: {}, service = {}", message, channel, service.getClass().getSimpleName());
 
             service.messageToService(message);
         }
@@ -315,7 +389,7 @@ public class Server implements WebSocketServerInterface {
     public void messageToService(String channel, byte[] bytes) {
         ConcurrentLinkedQueue<WebSocketServiceInterface> services = getServicesForChannel(channel);
         for (WebSocketServiceInterface service : services) {
-            log.debug("Sending: {} to channel: {}, service = {}", bytes, channel, service.getClass().getSimpleName());
+            log.info("Sending bytes: {} to channel: {}, service = {}", bytes, channel, service.getClass().getSimpleName());
 
             service.messageToService(bytes);
         }

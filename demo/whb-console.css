@@ -1,0 +1,29 @@
+textarea {
+	resize: none; /* Empêche le redimensionnement */
+}
+
+.afficheurClient {	
+	/* Couleurs caractéristiques */
+	background-color: #0066CC; /* Bleu typique */
+	color: #AACCFF; /* Texte blanc cassé bleu */
+	
+	/* Police monospace pour l'alignement des caractères */
+	font-family: 'Courier New', Courier, monospace;
+	font-size: 20px;
+	font-weight: bold;
+	
+	/* Espacement et alignement */
+	padding: 4px 8px;
+	line-height: 1.2;
+	
+	/* Suppression des bordures/décorations par défaut */
+	border: 2px solid #001166;
+	outline: none;
+	
+	/* Effet LCD/LED optionnel */
+	text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+	letter-spacing: 0.1em; /* Espacement entre caractères */
+	
+	white-space: nowrap;
+	overflow: hidden;
+}
