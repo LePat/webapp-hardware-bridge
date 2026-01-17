@@ -29,6 +29,7 @@ Section "!Main Application" ;No components page, name is not important
   
   ; Remove old version
   RMDir /r "$INSTDIR\jre"
+  RMDir /r "$INSTDIR\demo"
   Delete "$INSTDIR\*.jar"
   Delete "$INSTDIR\setting.default.json"
   Delete "$DESKTOP\WebApp Hardware Bridge (GUI).lnk"
@@ -39,6 +40,7 @@ Section "!Main Application" ;No components page, name is not important
   ; Put file there
   File /r out\artifacts\webapp_hardware_bridge_jar\*
   File /r jre
+  File /r demo
   
   File "install.nsi"
   File "icon.ico"
