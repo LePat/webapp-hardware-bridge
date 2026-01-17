@@ -5,6 +5,10 @@ log/
 out/
 jre/
 build/
+bin/
 .idea/workspace.xml
 config.json
 *.exe
+/.classpath
+/.project
+/.settings
