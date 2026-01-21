@@ -192,6 +192,19 @@ class CheckoutDialog06 {
 		data.push(this.ETX);
 		return data;
 	}
+	
+	/**
+	 * Record 11: Demande de checksum
+	 */
+	static createRecord11() {
+		return [
+			this.STX,
+			...this.stringToBytes('11'),
+			this.ESC,
+			...this.stringToBytes('2EF'),
+			this.ETX
+		];
+	}
 
 	/**
 	 * Record 20: Active/désactive le numéro de version logique
@@ -247,8 +260,7 @@ class CheckoutDialog06 {
 	 * Parse Record 09: Information de status après NAK
 	 */
 	static parseRecord09(bytes) {
-		const str = this.bytesToString(bytes);
-		const parts = str.split(String.fromCharCode(this.ESC));
+		const parts = bytes.split(String.fromCharCode(this.ESC));
 
 		if (parts[1] && parts[1].length >= 2) {
 			const statusCode = parts[1].substring(0, 2);
@@ -270,8 +282,7 @@ class CheckoutDialog06 {
 	 * Parse Record 11: Réponse ou demande de checksum
 	 */
 	static parseRecord11(bytes) {
-		const str = this.bytesToString(bytes);
-		const parts = str.split(String.fromCharCode(this.ESC));
+		const parts = bytes.split(String.fromCharCode(this.ESC));
 
 		if (parts[1] && parts[1].length >= 1) {
 			const status = parts[1].charAt(0);
@@ -289,7 +300,7 @@ class CheckoutDialog06 {
 					break;
 				case '2': // 32H
 					result.message = 'Retransmission du record 10 demandée';
-					result.randomNumber = parts[1].substring(1);
+					result.randomNumber = parts[1].substring(1, 3);
 					break;
 			}
 
