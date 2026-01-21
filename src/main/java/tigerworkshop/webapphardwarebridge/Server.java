@@ -1,7 +1,6 @@
 package tigerworkshop.webapphardwarebridge;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fazecast.jSerialComm.SerialPort;
 import io.javalin.Javalin;
@@ -16,6 +15,7 @@ import tigerworkshop.webapphardwarebridge.interfaces.WebSocketServerInterface;
 import tigerworkshop.webapphardwarebridge.interfaces.WebSocketServiceInterface;
 import tigerworkshop.webapphardwarebridge.services.ConfigService;
 import tigerworkshop.webapphardwarebridge.utils.CertificateGenerator;
+import tigerworkshop.webapphardwarebridge.utils.EscPOSPrinter;
 import tigerworkshop.webapphardwarebridge.utils.ThreadUtil;
 import tigerworkshop.webapphardwarebridge.websocketservices.PrinterWebSocketService;
 import tigerworkshop.webapphardwarebridge.websocketservices.SerialWebSocketService;
@@ -23,7 +23,10 @@ import tigerworkshop.webapphardwarebridge.websocketservices.SerialWebSocketServi
 import javax.print.PrintService;
 import java.awt.print.PrinterJob;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -173,32 +176,6 @@ public class Server implements WebSocketServerInterface {
             });
         }
         
-        // Add Console WebSocket Service
-        String channel = "console";
-        javalinServer.ws(channel, ws -> {
-            ws.onConnect(ctx -> {
-                log.info("{} connected to {}", ctx.host(), channel);
-
-                addSocketToChannel(channel, ctx);
-            });
-
-            ws.onClose(ctx -> {
-                log.info("{} disconnected from {}", ctx.host(), channel);
-
-                removeSocketFromChannel(channel, ctx);
-            });
-
-            ws.onMessage(ctx -> {
-                log.info("{} sent message to {}: {}", ctx.host(), channel, ctx.message());
-                getSocketsForChannel(channel).forEach(client -> client.send(ctx.message()));
-            });
-
-            ws.onBinaryMessage(ctx -> {
-                log.info("{} sent binary message to {}: {}", ctx.host(), channel, ctx.data());
-                getSocketsForChannel(channel).forEach(client -> client.send(ctx.data()));
-            });
-        });
-        
         // Add TakePOS WebSocket Service
         String channelTakePOS = "takepos";
         String channelBalance = "balance";
@@ -244,6 +221,54 @@ public class Server implements WebSocketServerInterface {
             ws.onBinaryMessage(ctx -> {
                 log.info("{} sent binary message to {}: {}", ctx.host(), channelBalance, ctx.data());
                 getSocketsForChannel(channelTakePOS).forEach(client -> client.send(ctx.data()));
+            });
+        });
+        
+        // Add POSPrinter Service
+        String channelPOSPrinter = "posprinter";
+        javalinServer.ws(channelPOSPrinter, ws -> {
+            ws.onConnect(ctx -> {
+                log.info("{} connected to {}", ctx.host(), channelPOSPrinter);
+                addSocketToChannel(channelPOSPrinter, ctx);
+            });
+
+            ws.onClose(ctx -> {
+                log.info("{} disconnected from {}", ctx.host(), channelPOSPrinter);
+                removeSocketFromChannel(channelPOSPrinter, ctx);
+            });
+
+            ws.onMessage(ctx -> {
+                log.info("{} sent message to {}: {}", ctx.host(), channelPOSPrinter, ctx.message());
+                EscPOSPrinter.convertReceiptToHTMLAndSendResult(ctx.message().getBytes(), getSocketsForChannel(channelPOSPrinter), channelPOSPrinter);
+            });
+
+            ws.onBinaryMessage(ctx -> {
+                log.info("{} sent binary message to {}: {}", ctx.host(), channelPOSPrinter, ctx.data());
+                EscPOSPrinter.convertReceiptToHTMLAndSendResult(ctx.data(), getSocketsForChannel(channelPOSPrinter), channelPOSPrinter);
+            });
+        });
+        
+        // Add Console WebSocket Service
+        String channelConsole = "console";
+        javalinServer.ws(channelConsole, ws -> {
+            ws.onConnect(ctx -> {
+                log.info("{} connected to {}", ctx.host(), channelConsole);
+                addSocketToChannel(channelConsole, ctx);
+            });
+
+            ws.onClose(ctx -> {
+                log.info("{} disconnected from {}", ctx.host(), channelConsole);
+                removeSocketFromChannel(channelConsole, ctx);
+            });
+
+            ws.onMessage(ctx -> {
+                log.info("{} sent message to {}: {}", ctx.host(), channelConsole, ctx.message());
+                getSocketsForChannel(channelConsole).forEach(client -> client.send(ctx.message()));
+            });
+
+            ws.onBinaryMessage(ctx -> {
+                log.info("{} sent binary message to {}: {}", ctx.host(), channelConsole, ctx.data());
+                getSocketsForChannel(channelConsole).forEach(client -> client.send(ctx.data()));
             });
         });
 

@@ -1,3 +1,19 @@
+// =================================
+// Gestion commune des WebSockets
+// =================================
+function onError(error) {
+	console.error("Erreur de WebSocket: ", error.message, "Fermeture");
+	this.close();
+}
+
+function onClose(e) {
+	console.log("WebSocket fermée, reconnexion dans 1s", e.reason);
+	var self = this;
+	setTimeout(function() {
+		self.connect();
+	}, 1000);
+}
+
 // ================
 // Afficheur Client
 // ================
@@ -10,6 +26,8 @@ function connecterAfficheurClient() {
 	}
 	webSocketAfficheurClient = new WebSocket(document.getElementById("wsAfficheurClientURL").value);
 	webSocketAfficheurClient.onmessage = webSocketAfficheurClientOnMessage;
+	webSocketAfficheurClient.onerror = onError;
+	webSocketAfficheurClient.onclose = onClose;
 }
 
 function webSocketAfficheurClientOnMessage(event) {
@@ -35,29 +53,30 @@ function connecterTakePOS() {
 /**
  * Etats de l'automate à états finis représentant l'utilisation du protocole par le client.
  */
-var States = {
+var ClientStates = {
 	'WAITING_FOR_COMMAND' : "En attente d'une commande",
 	'SENDING_UNITPRICE_BEFORE_WEIGHING' : "Envoi du prix unitaire",
 	'ACK_RECEIVED_FOR_UNITPRICE' : "Acquittement reçu suite à l'envoi du prix unitaire",
 	'REQUESTED_WEIGHING_SCALE' : "Pesée demandée",
+	'CHECKSUM' : "Demande de somme de contrôle",
 };
 
-// Etat courant
-var currentState = States.WAITING_FOR_COMMAND;
+// Etat courant du client
+var currentStateClient = ClientStates.WAITING_FOR_COMMAND;
 
 var currentWeight = 0;
 
 function askForWeight(unitPrice) {
-	currentState = States.SENDING_UNITPRICE_BEFORE_WEIGHING;
-	console.log(currentState);
+	currentStateClient = ClientStates.SENDING_UNITPRICE_BEFORE_WEIGHING;
+	console.log(currentStateClient);
 	envoyerUnitPrice(unitPrice);
 }
 
 function ENQ() {
 	if (webSocketTakePOS !== undefined) {
-		if (currentState == States.ACK_RECEIVED_FOR_UNITPRICE) {
-			currentState = States.REQUESTED_WEIGHING_SCALE;
-			console.log(currentState);
+		if (currentStateClient == ClientStates.ACK_RECEIVED_FOR_UNITPRICE) {
+			currentStateClient = ClientStates.REQUESTED_WEIGHING_SCALE;
+			console.log(currentStateClient);
 		}
 		webSocketTakePOS.send(CheckoutDialog06.formatMessage(CheckoutDialog06.createENQ()));
 	}
@@ -110,17 +129,26 @@ function webSocketTakePOSOnMessage(event) {
 	texte = texte.substring(texte.length - 30, texte.length).replace("\n", " ");
 	document.getElementById("balanceResponse").value = texte;
 	var response = CheckoutDialog06.identifyMessage(event.data);
+	console.log("receives data: " + JSON.stringify(response.data));
 	document.getElementById("balanceStatus").value = "" + response.type + " " + response.data;
-	if (response.type == 'ACK' && currentState == States.SENDING_UNITPRICE_BEFORE_WEIGHING) {
-		currentState = States.ACK_RECEIVED_FOR_UNITPRICE;
-		console.log(currentState);
+	if (response.type == 'ACK' && currentStateClient == ClientStates.SENDING_UNITPRICE_BEFORE_WEIGHING) {
+		currentStateClient = ClientStates.ACK_RECEIVED_FOR_UNITPRICE;
+		console.log(currentStateClient);
 		ENQ();
 	}
-	if (response.type == 'RECORD_02' && currentState == States.REQUESTED_WEIGHING_SCALE) {
+	if (response.type == 'RECORD_02' && currentStateClient == ClientStates.REQUESTED_WEIGHING_SCALE) {
 		currentWeight = response.data.weight;
-		currentState = States.WAITING_FOR_COMMAND;
-		console.log(currentState);
+		currentStateClient = ClientStates.WAITING_FOR_COMMAND;
+		console.log(currentStateClient);
 		document.getElementById("receivedWeight").value = currentWeight;
+	}
+	if (response.type == 'RECORD_11' && currentStateClient == ClientStates.REQUESTED_WEIGHING_SCALE) {
+		currentStateClient = ClientStates.CHECKSUM;
+		console.log(currentStateClient);
+		checksum = response.data.randomNumber.charAt(0);
+		correctionValue = response.data.randomNumber.charAt(1)
+		checksumPair = [{ checksum, correctionValue}];
+		webSocketTakePOS.send(CheckoutDialog06.formatMessage(CheckoutDialog06.createRecord10(checksumPair)));
 	}
 }
 
@@ -128,6 +156,21 @@ function webSocketTakePOSOnMessage(event) {
 // Balance
 // ================
 var webSocketBalance;
+
+/**
+ * Etats de l'automate à états finis représentant l'utilisation du protocole par la balance.
+ */
+var WeighingScaleStates = {
+	'WAITING_FOR_COMMAND' : "En attente d'une commande",
+	'REQUESTED_CHECHSUM' : "Somme de contrôle demandée",
+};
+
+// Etat courant de la balance
+var currentStateBalance = WeighingScaleStates.WAITING_FOR_COMMAND;
+
+const nombreRequetesAvantCheck = 2;
+
+var nombreDeRequetes = 0;
 
 function connecterBalance() {
 	if (webSocketBalance !== undefined) {
@@ -150,7 +193,17 @@ function webSocketBalanceOnMessage(event) {
 		webSocketBalance.send(String.fromCharCode(0x15));
 		return;
 	}
+	// ENQ : demande de pesée
 	if (event.data == String.fromCharCode(0x04, 0x05)) {
+		if (nombreDeRequetes > nombreRequetesAvantCheck) {
+			// Demander un check
+			currentStateBalance = WeighingScaleStates.REQUESTED_CHECHSUM;
+			console.log(currentStateBalance);
+			webSocketBalance.send(
+				CheckoutDialog06.formatMessage(CheckoutDialog06.createRecord11())		
+			);
+			nombreDeRequetes = 0;
+		}
 		webSocketBalance.send(
 			String.fromCharCode(
 				0x02, 0x30, 0x32, 0x1b, // Record n°2
@@ -161,6 +214,7 @@ function webSocketBalanceOnMessage(event) {
 			CheckoutDialog06.fromFloatAsStringToDialog06("" + (parseFloat(document.getElementById("poids").value) * parseFloat(document.getElementById("receivedUnitPrice").value)).toFixed(3)) + String.fromCharCode(0x1b) +
 			String.fromCharCode(0x03) // ETX
 		);
+		nombreDeRequetes++;
 	} else {
 		var recordNumber = getRecordNumber(event.data);
 		switch (recordNumber) {
@@ -188,6 +242,12 @@ function webSocketBalanceOnMessage(event) {
 			case 8:
 				console.log("demande de la raison du NAK");
 				webSocketBalance.send(CheckoutDialog06.formatMessage(CheckoutDialog06.createRecord09(document.getElementById("erreur").value)));
+				break;
+			case 10:
+				console.log("réponse en vérification du checksum");
+				if (currentStateBalance == WeighingScaleStates.REQUESTED_CHECHSUM) {
+					acquitter();
+				}
 				break;
 		}
 	}
@@ -246,4 +306,26 @@ function connecterConsole() {
 
 function envoyer() {
 	webSocketTest.send(document.getElementById("wsConsoleText").value);
+}
+
+// ==========================
+// Imprimante ESC-POS de test
+// ==========================
+
+var webSocketImprimanteESCPOS;
+
+function connecterPOSPrinter() {
+	if (webSocketImprimanteESCPOS !== undefined) {
+		webSocketImprimanteESCPOS.close();
+	}
+	webSocketImprimanteESCPOS = new WebSocket(document.getElementById("wsPOSPrinterURL").value);
+	webSocketImprimanteESCPOS.onmessage = posPrinterOnMessage;
+}
+
+function imprimer() {
+	webSocketImprimanteESCPOS.send(document.getElementById("wsPOSPrinterText").value);
+}
+
+function posPrinterOnMessage(event) {
+	document.getElementById("wsPOSPrinterOutputContent").innerHTML = event.data;
 }

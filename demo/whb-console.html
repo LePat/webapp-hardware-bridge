@@ -5,19 +5,23 @@
 	<script type="text/javascript" src="dialog06-protocol.js"></script>
 </head>
 <body>
-	<div>
-		<table>
-			<tr>
-				<td><h3>Afficheur client</h3></td>
-			</tr>
-			<tr>
-				<td><input id="wsAfficheurClientURL" type="text" size="30" value="ws://localhost:12212/console"/>&nbsp;<input type="button" value="Connecter" onclick="connecterAfficheurClient()"/></td>
-			</tr>
-			<tr>
-				<td><textarea id="afficheurClient" rows="2" cols="20" class="afficheurClient"></textarea></td>
-			</tr>
-		</table>
-	</div>
+	<table>
+		<tr>
+			<td>
+				<table>
+					<tr>
+						<td><h3>Afficheur client</h3></td>
+					</tr>
+					<tr>
+						<td><input id="wsAfficheurClientURL" type="text" size="30" value="ws://localhost:12212/serial/DISPLAYER"/>&nbsp;<input type="button" value="Connecter" onclick="connecterAfficheurClient()"/></td>
+					</tr>
+				</table>
+			</td>
+			<td>
+				<textarea id="afficheurClient" rows="2" cols="20" class="afficheurClient"></textarea>
+			</td>
+		</tr>
+	</table>
 	<br>
 	<div>
 		<table>
@@ -115,10 +119,35 @@
 			</tr>
 		</table>
 	</div>
+	<br>
+	<table>
+		<tr>
+			<td>
+			<table>
+				<tr>
+					<td><h3>POS Printer</h3></td>
+				</tr>
+				<tr>
+					<td><input id="wsPOSPrinterURL" type="text" size="30" value="ws://localhost:12212/posprinter"/>&nbsp;<input type="button" value="Connecter" onclick="connecterPOSPrinter()"/></td>
+				</tr>
+				<tr>
+					<td><textarea id="wsPOSPrinterText" rows="5" cols="30">G0AbQBthAEhlbGxvIFdvcmxkCh0hERthAUVTQy9QT1MgUHJpbnRlciBUZXN0Ch0hABthAkdvb2RieWUgV29ybGQKHVZBAw==</textarea></td>
+				</tr>
+				<tr>
+					<td><input type="button" value="Imprimer" onclick="imprimer()"/></td>
+				</tr>
+			</table>
+		</td>
+		<td>
+			<div id="wsPOSPrinterOutputContent">&nbsp;</div>
+		</td>
+	</table>
 </body>
 <script type="text/javascript">
-connecterConsole();
+connecterAfficheurClient();
 connecterTakePOS();
 connecterBalance();
+connecterPOSPrinter();
+connecterConsole();
 </script>
 </html>
