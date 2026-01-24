@@ -3,12 +3,11 @@
 // =================================
 function onError(error) {
 	console.error("Erreur de WebSocket: ", error.message, "Fermeture");
-	this.close();
+	this.close(this);
 }
 
-function onClose(e) {
-	console.log("WebSocket fermée, reconnexion dans 1s", e.reason);
-	var self = this;
+function onClose(self) {
+	console.log("WebSocket fermée, reconnexion dans 1s");
 	setTimeout(function() {
 		self.connect();
 	}, 1000);
@@ -69,7 +68,7 @@ var currentWeight = 0;
 function askForWeight(unitPrice) {
 	currentStateClient = ClientStates.SENDING_UNITPRICE_BEFORE_WEIGHING;
 	console.log(currentStateClient);
-	envoyerUnitPrice(unitPrice);
+	sendUnitPrice(unitPrice);
 }
 
 function ENQ() {
@@ -95,12 +94,12 @@ function envoyerCommandeTakePOS() {
 	} else {
 		var unitPrice = document.getElementById("unitPrice").value;
 		if (unitPrice !== undefined == unitPrice.length > 0) {
-			envoyerUnitPrice();
+			sendUnitPrice();
 		}
 	}
 }
 
-function envoyerUnitPrice() {
+function sendUnitPrice() {
 	if (webSocketTakePOS !== undefined) {
 		webSocketTakePOS.send(
 			String.fromCharCode(0x04, 0x02, 0x30, 0x31, 0x1b) +
@@ -311,7 +310,6 @@ function envoyer() {
 // ==========================
 // Imprimante ESC-POS de test
 // ==========================
-
 var webSocketImprimanteESCPOS;
 
 function connecterPOSPrinter() {
@@ -323,7 +321,10 @@ function connecterPOSPrinter() {
 }
 
 function imprimer() {
-	webSocketImprimanteESCPOS.send(document.getElementById("wsPOSPrinterText").value);
+	webSocketImprimanteESCPOS.send(JSON.stringify({
+		"type" : "test",
+		"raw_content": "\"" + document.getElementById("wsPOSPrinterText").value + "\""
+	}));
 }
 
 function posPrinterOnMessage(event) {
