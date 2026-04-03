@@ -182,12 +182,25 @@ public class Server implements WebSocketServerInterface {
 
             ws.onMessage(ctx -> {
                 log.info("{} sent message to {}: {}", ctx.host(), channelTakePOS, ctx.message());
-                getSocketsForChannel(channelBalance).forEach(client -> client.send(ctx.message()));
+                if (getSocketsForChannel(channelBalance).size() > 0) {
+                	getSocketsForChannel(channelBalance).forEach(client -> client.send(ctx.message()));
+                } else {
+                	throw new Exception("No channelBalance available");
+                }
             });
 
             ws.onBinaryMessage(ctx -> {
                 log.info("{} sent binary message to {}: {}", ctx.host(), channelTakePOS, ctx.data());
-                getSocketsForChannel(channelBalance).forEach(client -> client.send(ctx.data()));
+                if (getSocketsForChannel(channelBalance).size() > 0) {
+	                getSocketsForChannel(channelBalance).forEach(client -> client.send(ctx.data()));
+	            } else {
+	            	throw new Exception("No channelBalance available");
+	            }
+            });
+            
+            ws.onError(ctx -> {
+            	log.info("{} sent error to {}: {}", ctx.host(), channelTakePOS, ctx.error());
+                getSocketsForChannel(channelTakePOS).forEach(client -> client.send(ctx.error()));
             });
         });
         
