@@ -329,7 +329,10 @@ createApp({
 
     loadConfig() {
         return axios.get('/config.json')
-            .then(response => this.config = response.data)
+            .then(response => {
+				console.log(response.data);
+				this.config = response.data;
+			})
     },
     saveConfig() {
         return axios.put('/config.json', this.config)

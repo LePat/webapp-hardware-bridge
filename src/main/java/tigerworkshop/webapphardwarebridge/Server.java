@@ -325,7 +325,8 @@ public class Server implements WebSocketServerInterface {
         javalinServer.get("/system/serials.json", ctx -> {
             ArrayList<SerialPortDTO> dtos = new ArrayList<>();
             for (SerialPort port : SerialPort.getCommPorts()) {
-                dtos.add(new SerialPortDTO(port.getSystemPortName(), port.getPortDescription(), port.getManufacturer()));
+            	boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
+                dtos.add(new SerialPortDTO(isWindows ? port.getSystemPortName() : port.getSystemPortPath(), port.getPortDescription(), port.getManufacturer()));
             }
 
             ctx.contentType(ContentType.APPLICATION_JSON).result(objectMapper.writeValueAsString(dtos));
