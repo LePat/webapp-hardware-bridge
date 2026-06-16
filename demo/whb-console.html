@@ -87,7 +87,7 @@
 				</div>
 				<div class="champs">
 					<label>Status&nbsp;:</label><input id="status" type="text" value="" size="3"/>
-					<label>Erreur à renvoyer&nbsp;:</label><input id="erreur" type="text" value="11" size="4"/>
+					<label>Erreur à renvoyer&nbsp;:</label><select id="erreur"></select>
 				</div>
 			</div>
 		</section>
@@ -146,6 +146,7 @@
 	</section>
 </body>
 <script type="text/javascript">
+remplirCodesErreur();
 reconnecterTout();
 </script>
 </html>

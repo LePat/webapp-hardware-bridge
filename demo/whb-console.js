@@ -170,6 +170,26 @@ function reconnecterTout() {
 }
 
 /**
+ * Peuple le sélecteur de codes d'erreur à renvoyer depuis ERROR_CODES,
+ * pour conserver une source unique des codes Dialog-06.
+ */
+function remplirCodesErreur() {
+	var select = document.getElementById("erreur");
+	if (select === null) {
+		return;
+	}
+	Object.keys(CheckoutDialog06.ERROR_CODES).forEach(function(code) {
+		var option = document.createElement("option");
+		option.value = code;
+		option.textContent = code + " — " + CheckoutDialog06.ERROR_CODES[code];
+		if (code === "11") {
+			option.selected = true;
+		}
+		select.appendChild(option);
+	});
+}
+
+/**
  * Vide le journal des échanges.
  */
 function viderJournal() {
@@ -277,39 +297,51 @@ if (webSocketTakePOS !== undefined) {
 }
 }
 
+/**
+ * Choisit et envoie le bon enregistrement selon les champs renseignés :
+ *   prix seul            -> Record 01
+ *   prix + tare          -> Record 03
+ *   prix + texte         -> Record 04
+ *   prix + tare + texte  -> Record 05
+ */
 function envoyerCommandeTakePOS() {
+	var prix = document.getElementById("unitPrice").value;
+	if (prix === undefined || prix.length === 0) {
+		return;
+	}
 	var tare = document.getElementById("tare").value;
-	if (tare !== undefined && tare.length > 0) {
-		envoyerUnitPriceAndTare();
+	var texte = document.getElementById("text").value;
+	var aTare = tare !== undefined && tare.length > 0;
+	var aTexte = texte !== undefined && texte.length > 0;
+
+	var trame;
+	if (aTare && aTexte) {
+		trame = CheckoutDialog06.createRecord05(prix, tare, texte);
+	} else if (aTare) {
+		trame = CheckoutDialog06.createRecord03(prix, tare);
+	} else if (aTexte) {
+		trame = CheckoutDialog06.createRecord04(prix, texte);
 	} else {
-		var unitPrice = document.getElementById("unitPrice").value;
-		if (unitPrice !== undefined && unitPrice.length > 0) {
-			sendUnitPrice();
-		}
+		trame = CheckoutDialog06.createRecord01(prix);
+	}
+	envoyerTakePOS(CheckoutDialog06.formatMessage(trame));
+}
+
+/**
+ * Envoie une trame déjà formatée sur le socket TakePOS, si connecté.
+ */
+function envoyerTakePOS(trame) {
+	if (webSocketTakePOS !== undefined) {
+		webSocketTakePOS.send(trame);
 	}
 }
 
 function sendUnitPrice() {
-	if (webSocketTakePOS !== undefined) {
-		webSocketTakePOS.send(
-			String.fromCharCode(0x04, 0x02, 0x30, 0x31, 0x1b) +
-			CheckoutDialog06.fromFloatAsStringToDialog06(document.getElementById("unitPrice").value) +
-			String.fromCharCode(0x1b, 0x03)
-		);
-	}
-}
-
-function envoyerUnitPriceAndTare() {
-	if (webSocketTakePOS !== undefined) {
-		webSocketTakePOS.send(
-			CheckoutDialog06.formatMessage(
-				CheckoutDialog06.createRecord03(
-					document.getElementById("unitPrice").value,
-					document.getElementById("tare").value
-				)
-			)
-		);
-	}
+	envoyerTakePOS(
+		CheckoutDialog06.formatMessage(
+			CheckoutDialog06.createRecord01(document.getElementById("unitPrice").value)
+		)
+	);
 }
 
 function webSocketTakePOSOnMessage(event) {
@@ -425,11 +457,14 @@ function webSocketBalanceOnMessage(event) {
 			case 4:
 				console.log("transmission of unit price and text");
 				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToPrice(extractUnitPrice(event.data, 5));
+				document.getElementById("receivedText").value = extractText(event.data);
 				acquitter();
 				break;
 			case 5:
 				console.log("transmission of unit price, tare value and text");
 				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToPrice(extractUnitPrice(event.data, 5));
+				document.getElementById("receivedTare").value = CheckoutDialog06.fromDialog06ToFloat(extractTare(event.data));
+				document.getElementById("receivedText").value = extractText(event.data);
 				acquitter();
 				break;
 			case 8:
@@ -483,6 +518,16 @@ function extractUnitPrice(data, startIndex) {
 function extractTare(data) {
 	var separateur = String.fromCharCode(0x1b);
 	return tare = data.split(separateur)[2].substring(0, 4);
+}
+
+/**
+ * Extrait le texte d'un record 04/05 : dernier segment entre ESC, sans l'ETX.
+ */
+function extractText(data) {
+	var separateur = String.fromCharCode(0x1b);
+	var parts = data.split(separateur);
+	var dernier = parts[parts.length - 1];
+	return dernier.replace(String.fromCharCode(0x03), "").trim();
 }
 
 // =================

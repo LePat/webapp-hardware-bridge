@@ -352,12 +352,11 @@ class CheckoutDialog06 {
 	}
 
 	/**
-	 * Transforme un prix du protocole, 3 chiffres après la virgule.
+	 * Transforme un prix du protocole (centimes, 2 décimales) en flottant.
+	 * Inverse de fromPriceToDialog06.
 	 */
 	static fromDialog06ToPrice(data) {
-		var flottant = parseInt(data.substring(data.length - 3, data.length)) / 1000;
-		flottant += parseInt(data.substring(0, data.length - 3));
-		return flottant;
+		return parseInt(data) / 100;
 	}
 
 	/**
