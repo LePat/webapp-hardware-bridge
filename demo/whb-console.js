@@ -42,11 +42,58 @@ function majEtat(statusId, etat) {
 	}[etat] || etat;
 }
 
+// Noms lisibles des caractères de contrôle du protocole Dialog-06.
+const NOMS_CONTROLE = {
+	0x02: "STX", 0x03: "ETX", 0x04: "EOT", 0x05: "ENQ",
+	0x06: "ACK", 0x15: "NAK", 0x1b: "ESC"
+};
+
+/**
+ * Décrit une trame (chaîne de bytes) sous forme lisible + hex.
+ * - lisible : caractères imprimables tels quels, contrôles entre chevrons (<STX>…)
+ * - hex     : suite des octets en hexadécimal
+ */
+function decrireTrame(data) {
+	var hex = [];
+	var lisible = "";
+	for (var i = 0; i < data.length; i++) {
+		var code = data.charCodeAt(i);
+		hex.push(code.toString(16).padStart(2, "0").toUpperCase());
+		if (NOMS_CONTROLE[code]) {
+			lisible += "<" + NOMS_CONTROLE[code] + ">";
+		} else if (code >= 32 && code <= 126) {
+			lisible += data.charAt(i);
+		} else {
+			lisible += "<" + code.toString(16).padStart(2, "0").toUpperCase() + ">";
+		}
+	}
+	return { lisible: lisible, hex: hex.join(" ") };
+}
+
+/**
+ * Ajoute une entrée au journal des échanges.
+ * libelle : "TakePOS" | "Balance" ; sens : "envoi" | "reçu"
+ */
+function journaliser(libelle, sens, data) {
+	var journal = document.getElementById("journal");
+	if (journal === null || data === undefined || data === null || data.length === 0) {
+		return;
+	}
+	var trame = decrireTrame("" + data);
+	var heure = new Date().toLocaleTimeString();
+	var fleche = (sens === "envoi") ? "→" : "←";
+	var ligne = "[" + heure + "] " + libelle.padEnd(8) + fleche + " " + trame.lisible + "    |  " + trame.hex;
+	journal.value += (journal.value ? "\n" : "") + ligne;
+	journal.scrollTop = journal.scrollHeight;
+}
+
 /**
  * Ouvre un WebSocket robuste avec reconnexion automatique.
- * opts: { urlInputId, onMessage, statusId, setSocket }
+ * opts: { urlInputId, onMessage, statusId, setSocket, libelle, journal }
  * - setSocket(ws) permet de stocker le socket courant dans la variable globale
  *   correspondante, afin que les fonctions d'envoi utilisent toujours le bon.
+ * - libelle/journal : si journal=true, les trames envoyées/reçues sont
+ *   journalisées sous le libellé donné.
  */
 function connecterWebSocket(opts) {
 	// Annule une reconnexion déjà programmée pour ce socket.
@@ -64,8 +111,22 @@ function connecterWebSocket(opts) {
 		majEtat(opts.statusId, "ouvert");
 	};
 
-	if (opts.onMessage) {
-		ws.onmessage = opts.onMessage;
+	ws.onmessage = function(event) {
+		if (opts.journal) {
+			journaliser(opts.libelle, "reçu", event.data);
+		}
+		if (opts.onMessage) {
+			opts.onMessage(event);
+		}
+	};
+
+	// Journalise aussi les trames sortantes en interceptant send().
+	if (opts.journal) {
+		var envoiOriginal = ws.send.bind(ws);
+		ws.send = function(data) {
+			journaliser(opts.libelle, "envoi", data);
+			return envoiOriginal(data);
+		};
 	}
 
 	ws.onerror = function(error) {
@@ -108,6 +169,36 @@ function reconnecterTout() {
 	connecterConsole();
 }
 
+/**
+ * Vide le journal des échanges.
+ */
+function viderJournal() {
+	var journal = document.getElementById("journal");
+	if (journal !== null) {
+		journal.value = "";
+	}
+}
+
+/**
+ * Réinitialise l'état de la simulation : journal, trames affichées, champs
+ * reçus et automates à états finis. Ne touche pas aux connexions.
+ */
+function reinitialiser() {
+	["journal", "balanceResponse", "balanceStatus", "balanceRequest",
+	 "receivedWeight", "receivedUnitPrice", "receivedTare", "receivedText"
+	].forEach(function(id) {
+		var element = document.getElementById(id);
+		if (element !== null) {
+			element.value = "";
+		}
+	});
+
+	currentStateClient = ClientStates.WAITING_FOR_COMMAND;
+	currentStateBalance = WeighingScaleStates.WAITING_FOR_COMMAND;
+	currentWeight = 0;
+	nombreDeRequetes = 0;
+}
+
 // ================
 // Afficheur Client
 // ================
@@ -142,6 +233,8 @@ function connecterTakePOS() {
 		urlInputId: "wsTakePOSURL",
 		onMessage: webSocketTakePOSOnMessage,
 		statusId: "statusTakePOS",
+		libelle: "TakePOS",
+		journal: true,
 		setSocket: function(ws) { webSocketTakePOS = ws; }
 	});
 }
@@ -274,6 +367,8 @@ function connecterBalance() {
 		urlInputId: "wsBalanceURL",
 		onMessage: webSocketBalanceOnMessage,
 		statusId: "statusBalance",
+		libelle: "Balance",
+		journal: true,
 		setSocket: function(ws) { webSocketBalance = ws; }
 	});
 }

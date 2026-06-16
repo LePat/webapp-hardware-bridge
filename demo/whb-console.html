@@ -13,6 +13,7 @@
 		<label><input type="checkbox" id="modeCrypte" onchange="reconnecterTout()"/> Mode crypté (wss)</label>
 		<label>Token&nbsp;: <input id="authToken" type="text" size="24" value="" onchange="reconnecterTout()"/></label>
 		<input type="button" value="Tout reconnecter" onclick="reconnecterTout()"/>
+		<input type="button" value="Réinitialiser" onclick="reinitialiser()"/>
 	</header>
 
 	<!-- Afficheur client : commande à gauche, écran à droite -->
@@ -91,6 +92,17 @@
 			</div>
 		</section>
 	</div>
+
+	<!-- Journal chronologique des trames TakePOS <-> Balance -->
+	<section class="panneau">
+		<div class="panneau-entete">
+			<h3>Journal des échanges <small>(TakePOS ↔ Balance)</small></h3>
+			<input type="button" value="Vider" onclick="viderJournal()" class="bouton-entete"/>
+		</div>
+		<div class="panneau-corps">
+			<textarea id="journal" class="journal" rows="10" readonly></textarea>
+		</div>
+	</section>
 
 	<!-- Imprimante : commande à gauche, rendu du ticket à droite -->
 	<section class="panneau">
