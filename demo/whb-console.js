@@ -209,7 +209,7 @@ function webSocketBalanceOnMessage(event) {
 				0x33, 0x1b // Scale status: kg
 			) +
 			CheckoutDialog06.fromFloatAsStringToDialog06(document.getElementById("poids").value) + String.fromCharCode(0x1b) +
-			CheckoutDialog06.fromFloatAsStringToDialog06(document.getElementById("receivedUnitPrice").value) + String.fromCharCode(0x1b) +
+			CheckoutDialog06.fromPriceAsStringToDialog06(document.getElementById("receivedUnitPrice").value) + String.fromCharCode(0x1b) +
 			CheckoutDialog06.fromFloatAsStringToDialog06("" + (parseFloat(document.getElementById("poids").value) * parseFloat(document.getElementById("receivedUnitPrice").value)).toFixed(3)) + String.fromCharCode(0x1b) +
 			String.fromCharCode(0x03) // ETX
 		);
@@ -219,23 +219,23 @@ function webSocketBalanceOnMessage(event) {
 		switch (recordNumber) {
 			case 1:
 				console.log("transmission of unit price");
-				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToFloat(extractUnitPrice(event.data, 5));
+				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToPrice(extractUnitPrice(event.data, 5));
 				acquitter();
 				break;
 			case 3:
 				console.log("transmission of unit price and tare value");
-				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToFloat(extractUnitPrice(event.data, 5));
+				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToPrice(extractUnitPrice(event.data, 5));
 				document.getElementById("receivedTare").value = CheckoutDialog06.fromDialog06ToFloat(extractTare(event.data, 10));
 				acquitter();
 				break;
 			case 4:
 				console.log("transmission of unit price and text");
-				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToFloat(extractUnitPrice(event.data, 5));
+				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToPrice(extractUnitPrice(event.data, 5));
 				acquitter();
 				break;
 			case 5:
 				console.log("transmission of unit price, tare value and text");
-				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToFloat(extractUnitPrice(event.data, 5));
+				document.getElementById("receivedUnitPrice").value = CheckoutDialog06.fromDialog06ToPrice(extractUnitPrice(event.data, 5));
 				acquitter();
 				break;
 			case 8:

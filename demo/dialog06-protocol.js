@@ -81,7 +81,7 @@ class CheckoutDialog06 {
 			this.STX,
 			...this.stringToBytes('01'),
 			this.ESC,
-			...this.stringToBytes(this.fromFloatToDialog06(price)),
+			...this.stringToBytes(this.fromPriceToDialog06(price)),
 			this.ESC,
 			this.ETX
 		];
@@ -98,7 +98,7 @@ class CheckoutDialog06 {
 			this.STX,
 			...this.stringToBytes('03'),
 			this.ESC,
-			...this.stringToBytes(this.fromFloatToDialog06(price)),
+			...this.stringToBytes(this.fromPriceToDialog06(price)),
 			this.ESC,
 			...this.stringToBytes(this.fromFloatToDialog06(tare, true)),
 			this.ETX
@@ -117,7 +117,7 @@ class CheckoutDialog06 {
 			this.STX,
 			...this.stringToBytes('04'),
 			this.ESC,
-			...this.stringToBytes(this.fromFloatToDialog06(price)),
+			...this.stringToBytes(this.fromPriceToDialog06(price)),
 			this.ESC,
 			...this.stringToBytes(textPadded),
 			this.ETX
@@ -137,7 +137,7 @@ class CheckoutDialog06 {
 			this.STX,
 			...this.stringToBytes('05'),
 			this.ESC,
-			...this.stringToBytes(this.fromFloatToDialog06(price)),
+			...this.stringToBytes(this.fromPriceToDialog06(price)),
 			this.ESC,
 			...this.stringToBytes(this.fromFloatToDialog06(tare, true)),
 			this.ESC,
@@ -236,7 +236,7 @@ class CheckoutDialog06 {
 	}
 
 	// ============================================================
-	// PARSERS POUR ENREGISTREMENTS BALANCE → POS
+	// PARSERS POUR ENREGISTREMENTS BALANCE -> POS
 	// ============================================================
 
 	/**
@@ -260,7 +260,8 @@ class CheckoutDialog06 {
 	 * Parse Record 09: Information de status après NAK
 	 */
 	static parseRecord09(bytes) {
-		const parts = bytes.split(String.fromCharCode(this.ESC));
+		const str = this.bytesToString(bytes);
+		const parts = str.split(String.fromCharCode(this.ESC));
 
 		if (parts[1] && parts[1].length >= 2) {
 			const statusCode = parts[1].substring(0, 2);
@@ -282,7 +283,8 @@ class CheckoutDialog06 {
 	 * Parse Record 11: Réponse ou demande de checksum
 	 */
 	static parseRecord11(bytes) {
-		const parts = bytes.split(String.fromCharCode(this.ESC));
+		const str = this.bytesToString(bytes);
+		const parts = str.split(String.fromCharCode(this.ESC));
 
 		if (parts[1] && parts[1].length >= 1) {
 			const status = parts[1].charAt(0);
@@ -300,7 +302,7 @@ class CheckoutDialog06 {
 					break;
 				case '2': // 32H
 					result.message = 'Retransmission du record 10 demandée';
-					result.randomNumber = parts[1].substring(1, 3);
+					result.randomNumber = parts[1].substring(1);
 					break;
 			}
 
@@ -350,6 +352,15 @@ class CheckoutDialog06 {
 	}
 
 	/**
+	 * Transforme un prix du protocole, 3 chiffres après la virgule.
+	 */
+	static fromDialog06ToPrice(data) {
+		var flottant = parseInt(data.substring(data.length - 3, data.length)) / 1000;
+		flottant += parseInt(data.substring(0, data.length - 3));
+		return flottant;
+	}
+
+	/**
 	 * Transforme un nombre du protocole, 3 chiffres après la virgule.
 	 */
 	static fromDialog06ToFloat(data) {
@@ -368,6 +379,22 @@ class CheckoutDialog06 {
 			numberSplitted[0].padStart((tare ? 1 : 3), "0") + 
 			(numberSplitted.length == 2 ? numberSplitted[1].padEnd(3, "0") : "000");
 		return nombreDialog06;
+	}
+	
+	/**
+	 * Encode un prix unitaire au format Dialog-06 (6 chiffres, 2 décimales fixes).
+	 */
+    static fromPriceToDialog06(price) {
+        var cents = Math.round(price * 100);
+        return cents.toString().padStart(6, "0");
+    }
+
+	/**
+	 * Transforme un prix représenté dans une chaine de caractères en nombre du protocole.
+	 */
+	static fromPriceAsStringToDialog06(number) {
+		var flottant = parseFloat(number);
+		return this.fromPriceToDialog06(flottant);
 	}
 
 	/**
