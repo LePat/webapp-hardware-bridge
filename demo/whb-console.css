@@ -2,6 +2,29 @@ textarea {
 	resize: none; /* Empêche le redimensionnement */
 }
 
+/* Bandeau de connexion global (mode crypté / token) */
+.barre-connexion {
+	padding: 8px;
+	background-color: #f0f0f0;
+	border: 1px solid #ccc;
+	font-family: sans-serif;
+	font-size: 14px;
+}
+
+/* Pastille d'état de connexion d'un socket */
+.etat {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	margin-right: 6px;
+	vertical-align: middle;
+	border: 1px solid #888;
+}
+.etat-ouvert { background-color: #2ecc40; }   /* vert : connecté */
+.etat-ferme { background-color: #ff4136; }    /* rouge : déconnecté */
+.etat-connexion { background-color: #ffdc00; } /* jaune : connexion en cours */
+
 .afficheurClient {	
 	/* Couleurs caractéristiques */
 	background-color: #0066CC; /* Bleu typique */

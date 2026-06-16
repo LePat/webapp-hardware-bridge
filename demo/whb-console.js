@@ -1,16 +1,111 @@
 // =================================
 // Gestion commune des WebSockets
 // =================================
-function onError(error) {
-	console.error("Erreur de WebSocket: ", error.message, "Fermeture");
-	this.close(this);
+
+// Délai avant tentative de reconnexion automatique (ms).
+const DELAI_RECONNEXION = 1000;
+
+// Timers de reconnexion en attente, indexés par statusId, pour éviter
+// de lancer plusieurs chaînes de reconnexion en parallèle sur un même socket.
+var timersReconnexion = {};
+
+/**
+ * Construit l'URL de connexion à partir de l'URL de base saisie, en
+ * appliquant le mode crypté (ws -> wss) et le token d'authentification.
+ */
+function construireURL(urlBase) {
+	var url = urlBase;
+	if (document.getElementById("modeCrypte").checked) {
+		url = url.replace(/^ws:\/\//i, "wss://");
+	}
+	var token = document.getElementById("authToken").value;
+	if (token && token.length > 0) {
+		url += (url.indexOf("?") >= 0 ? "&" : "?") + "token=" + encodeURIComponent(token);
+	}
+	return url;
 }
 
-function onClose(self) {
-	console.log("WebSocket fermée, reconnexion dans 1s");
-	setTimeout(function() {
-		self.connect();
-	}, 1000);
+/**
+ * Met à jour la pastille d'état d'un socket.
+ * etat: "connexion" | "ouvert" | "ferme"
+ */
+function majEtat(statusId, etat) {
+	var element = document.getElementById(statusId);
+	if (element === null) {
+		return;
+	}
+	element.className = "etat etat-" + etat;
+	element.title = {
+		"connexion": "Connexion en cours…",
+		"ouvert": "Connecté",
+		"ferme": "Déconnecté (reconnexion auto)"
+	}[etat] || etat;
+}
+
+/**
+ * Ouvre un WebSocket robuste avec reconnexion automatique.
+ * opts: { urlInputId, onMessage, statusId, setSocket }
+ * - setSocket(ws) permet de stocker le socket courant dans la variable globale
+ *   correspondante, afin que les fonctions d'envoi utilisent toujours le bon.
+ */
+function connecterWebSocket(opts) {
+	// Annule une reconnexion déjà programmée pour ce socket.
+	if (timersReconnexion[opts.statusId]) {
+		clearTimeout(timersReconnexion[opts.statusId]);
+		delete timersReconnexion[opts.statusId];
+	}
+
+	var url = construireURL(document.getElementById(opts.urlInputId).value);
+	majEtat(opts.statusId, "connexion");
+
+	var ws = new WebSocket(url);
+
+	ws.onopen = function() {
+		majEtat(opts.statusId, "ouvert");
+	};
+
+	if (opts.onMessage) {
+		ws.onmessage = opts.onMessage;
+	}
+
+	ws.onerror = function(error) {
+		console.error("Erreur WebSocket sur " + url + ": ", error);
+		// onclose suivra et déclenchera la reconnexion.
+	};
+
+	ws.onclose = function() {
+		majEtat(opts.statusId, "ferme");
+		console.log("WebSocket " + url + " fermée, reconnexion dans " + DELAI_RECONNEXION + "ms");
+		timersReconnexion[opts.statusId] = setTimeout(function() {
+			connecterWebSocket(opts);
+		}, DELAI_RECONNEXION);
+	};
+
+	opts.setSocket(ws);
+	return ws;
+}
+
+/**
+ * Ferme proprement un socket existant sans déclencher la reconnexion auto.
+ */
+function fermerProprement(ws) {
+	if (ws !== undefined && ws !== null) {
+		ws.onclose = null;
+		ws.onerror = null;
+		ws.close();
+	}
+}
+
+/**
+ * (Re)connecte tous les sockets : utilisé au chargement et au changement
+ * de mode crypté / token.
+ */
+function reconnecterTout() {
+	connecterAfficheurClient();
+	connecterTakePOS();
+	connecterBalance();
+	connecterPOSPrinter();
+	connecterConsole();
 }
 
 // ================
@@ -20,13 +115,13 @@ var webSocketAfficheurClient;
 var texte = "";
 
 function connecterAfficheurClient() {
-	if (webSocketAfficheurClient !== undefined) {
-		webSocketAfficheurClient.close();
-	}
-	webSocketAfficheurClient = new WebSocket(document.getElementById("wsAfficheurClientURL").value);
-	webSocketAfficheurClient.onmessage = webSocketAfficheurClientOnMessage;
-	webSocketAfficheurClient.onerror = onError;
-	webSocketAfficheurClient.onclose = onClose;
+	fermerProprement(webSocketAfficheurClient);
+	connecterWebSocket({
+		urlInputId: "wsAfficheurClientURL",
+		onMessage: webSocketAfficheurClientOnMessage,
+		statusId: "statusAfficheurClient",
+		setSocket: function(ws) { webSocketAfficheurClient = ws; }
+	});
 }
 
 function webSocketAfficheurClientOnMessage(event) {
@@ -42,11 +137,13 @@ function webSocketAfficheurClientOnMessage(event) {
 var webSocketTakePOS;
 
 function connecterTakePOS() {
-	if (webSocketTakePOS !== undefined) {
-		webSocketTakePOS.close();
-	}
-	webSocketTakePOS = new WebSocket(document.getElementById("wsTakePOSURL").value);
-	webSocketTakePOS.onmessage = webSocketTakePOSOnMessage;
+	fermerProprement(webSocketTakePOS);
+	connecterWebSocket({
+		urlInputId: "wsTakePOSURL",
+		onMessage: webSocketTakePOSOnMessage,
+		statusId: "statusTakePOS",
+		setSocket: function(ws) { webSocketTakePOS = ws; }
+	});
 }
 
 /**
@@ -93,7 +190,7 @@ function envoyerCommandeTakePOS() {
 		envoyerUnitPriceAndTare();
 	} else {
 		var unitPrice = document.getElementById("unitPrice").value;
-		if (unitPrice !== undefined == unitPrice.length > 0) {
+		if (unitPrice !== undefined && unitPrice.length > 0) {
 			sendUnitPrice();
 		}
 	}
@@ -172,11 +269,13 @@ const nombreRequetesAvantCheck = 2;
 var nombreDeRequetes = 0;
 
 function connecterBalance() {
-	if (webSocketBalance !== undefined) {
-		webSocketBalance.close();
-	}
-	webSocketBalance = new WebSocket(document.getElementById("wsBalanceURL").value);
-	webSocketBalance.onmessage = webSocketBalanceOnMessage;
+	fermerProprement(webSocketBalance);
+	connecterWebSocket({
+		urlInputId: "wsBalanceURL",
+		onMessage: webSocketBalanceOnMessage,
+		statusId: "statusBalance",
+		setSocket: function(ws) { webSocketBalance = ws; }
+	});
 }
 
 function acquitter() {
@@ -297,10 +396,13 @@ function extractTare(data) {
 var webSocketTest;
 
 function connecterConsole() {
-	if (webSocketTest !== undefined) {
-		webSocketTest.close();
-	}
-	webSocketTest = new WebSocket(document.getElementById("wsConsoleURL").value);
+	fermerProprement(webSocketTest);
+	connecterWebSocket({
+		urlInputId: "wsConsoleURL",
+		onMessage: null,
+		statusId: "statusConsole",
+		setSocket: function(ws) { webSocketTest = ws; }
+	});
 }
 
 function envoyer() {
@@ -313,11 +415,13 @@ function envoyer() {
 var webSocketImprimanteESCPOS;
 
 function connecterPOSPrinter() {
-	if (webSocketImprimanteESCPOS !== undefined) {
-		webSocketImprimanteESCPOS.close();
-	}
-	webSocketImprimanteESCPOS = new WebSocket(document.getElementById("wsPOSPrinterURL").value);
-	webSocketImprimanteESCPOS.onmessage = posPrinterOnMessage;
+	fermerProprement(webSocketImprimanteESCPOS);
+	connecterWebSocket({
+		urlInputId: "wsPOSPrinterURL",
+		onMessage: posPrinterOnMessage,
+		statusId: "statusPOSPrinter",
+		setSocket: function(ws) { webSocketImprimanteESCPOS = ws; }
+	});
 }
 
 function imprimer() {

@@ -5,6 +5,14 @@
 	<script type="text/javascript" src="dialog06-protocol.js"></script>
 </head>
 <body>
+	<div class="barre-connexion">
+		<label><input type="checkbox" id="modeCrypte" onchange="reconnecterTout()"/> Mode crypté (wss)</label>
+		&nbsp;&nbsp;
+		<label>Token: <input id="authToken" type="text" size="24" value="" onchange="reconnecterTout()"/></label>
+		&nbsp;&nbsp;
+		<input type="button" value="Tout reconnecter" onclick="reconnecterTout()"/>
+	</div>
+	<br>
 	<table>
 		<tr>
 			<td>
@@ -13,7 +21,7 @@
 						<td><h3>Afficheur client</h3></td>
 					</tr>
 					<tr>
-						<td><input id="wsAfficheurClientURL" type="text" size="30" value="ws://localhost:12212/serial/DISPLAYER"/>&nbsp;<input type="button" value="Connecter" onclick="connecterAfficheurClient()"/></td>
+						<td><span class="etat etat-ferme" id="statusAfficheurClient"></span><input id="wsAfficheurClientURL" type="text" size="30" value="ws://localhost:12212/serial/DISPLAYER"/>&nbsp;<input type="button" value="Connecter" onclick="connecterAfficheurClient()"/></td>
 					</tr>
 				</table>
 			</td>
@@ -32,7 +40,7 @@
 							<td><h3>TakePOS</h3></td>
 						</tr>
 						<tr>
-							<td><input id="wsTakePOSURL" type="text" size="30" value="ws://localhost:12212/takepos"/>&nbsp;<input type="button" value="Connecter" onclick="connecterTakePOS()"/></td>
+							<td><span class="etat etat-ferme" id="statusTakePOS"></span><input id="wsTakePOSURL" type="text" size="30" value="ws://localhost:12212/takepos"/>&nbsp;<input type="button" value="Connecter" onclick="connecterTakePOS()"/></td>
 						</tr>
 						<tr>
 							<td><textarea id="balanceResponse" rows="1" cols="44"></textarea></td>
@@ -71,7 +79,7 @@
 							<td><h3>Balance</h3></td>
 						</tr>
 						<tr>
-							<td><input id="wsBalanceURL" type="text" size="30" value="ws://localhost:12212/balance"/>&nbsp;<input type="button" value="Connecter" onclick="connecterBalance()"/></td>
+							<td><span class="etat etat-ferme" id="statusBalance"></span><input id="wsBalanceURL" type="text" size="30" value="ws://localhost:12212/balance"/>&nbsp;<input type="button" value="Connecter" onclick="connecterBalance()"/></td>
 						</tr>
 						<tr>
 							<td><textarea id="balanceRequest" rows="1" cols="44"></textarea></td>
@@ -111,7 +119,7 @@
 					<td><h3>POS Printer</h3></td>
 				</tr>
 				<tr>
-					<td><input id="wsPOSPrinterURL" type="text" size="30" value="ws://localhost:12212/posprinter"/>&nbsp;<input type="button" value="Connecter" onclick="connecterPOSPrinter()"/></td>
+					<td><span class="etat etat-ferme" id="statusPOSPrinter"></span><input id="wsPOSPrinterURL" type="text" size="30" value="ws://localhost:12212/posprinter"/>&nbsp;<input type="button" value="Connecter" onclick="connecterPOSPrinter()"/></td>
 				</tr>
 				<tr>
 					<td><textarea id="wsPOSPrinterText" rows="5" cols="30">G0AbQBthAEhlbGxvIFdvcmxkCh0hERthAUVTQy9QT1MgUHJpbnRlciBUZXN0Ch0hABthAkdvb2RieWUgV29ybGQKHVZBAw==</textarea></td>
@@ -132,7 +140,7 @@
 				<td><h3>WebSocket de test</h3></td>
 			</tr>
 			<tr>
-				<td><input id="wsConsoleURL" type="text" size="30" value="ws://localhost:12212/console"/>&nbsp;<input type="button" value="Connecter" onclick="connecterConsole()"/></td>
+				<td><span class="etat etat-ferme" id="statusConsole"></span><input id="wsConsoleURL" type="text" size="30" value="ws://localhost:12212/console"/>&nbsp;<input type="button" value="Connecter" onclick="connecterConsole()"/></td>
 			</tr>
 			<tr>
 				<td><input id="wsConsoleText" type="text" value="test"/></td>
@@ -144,10 +152,6 @@
 	</div>
 </body>
 <script type="text/javascript">
-connecterAfficheurClient();
-connecterTakePOS();
-connecterBalance();
-connecterPOSPrinter();
-connecterConsole();
+reconnecterTout();
 </script>
 </html>

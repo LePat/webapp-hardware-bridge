@@ -68,7 +68,7 @@ class CheckoutDialog06 {
 	}
 
 	// ============================================================
-	// ENREGISTREMENTS POS → BALANCE
+	// ENREGISTREMENTS POS -> BALANCE
 	// ============================================================
 
 	/**
