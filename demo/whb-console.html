@@ -1,155 +1,137 @@
 <html>
 <head>
+	<meta charset="utf-8">
+	<title>WHB — Console de simulation caisse</title>
 	<link rel="stylesheet" href="whb-console.css">
 	<script type="text/javascript" src="whb-console.js"></script>
 	<script type="text/javascript" src="dialog06-protocol.js"></script>
 </head>
 <body>
-	<div class="barre-connexion">
+	<!-- Bandeau de gestion général : chiffrement, token, reconnexion globale -->
+	<header class="barre-connexion">
+		<strong class="barre-titre">Console de simulation caisse</strong>
 		<label><input type="checkbox" id="modeCrypte" onchange="reconnecterTout()"/> Mode crypté (wss)</label>
-		&nbsp;&nbsp;
-		<label>Token: <input id="authToken" type="text" size="24" value="" onchange="reconnecterTout()"/></label>
-		&nbsp;&nbsp;
+		<label>Token&nbsp;: <input id="authToken" type="text" size="24" value="" onchange="reconnecterTout()"/></label>
 		<input type="button" value="Tout reconnecter" onclick="reconnecterTout()"/>
-	</div>
-	<br>
-	<table>
-		<tr>
-			<td>
-				<table>
-					<tr>
-						<td><h3>Afficheur client</h3></td>
-					</tr>
-					<tr>
-						<td><span class="etat etat-ferme" id="statusAfficheurClient"></span><input id="wsAfficheurClientURL" type="text" size="30" value="ws://localhost:12212/serial/DISPLAYER"/>&nbsp;<input type="button" value="Connecter" onclick="connecterAfficheurClient()"/></td>
-					</tr>
-				</table>
-			</td>
-			<td>
+	</header>
+
+	<!-- Afficheur client : commande à gauche, écran à droite -->
+	<section class="panneau">
+		<div class="panneau-entete">
+			<span class="etat etat-ferme" id="statusAfficheurClient"></span>
+			<h3>Afficheur client</h3>
+		</div>
+		<div class="panneau-corps deux-colonnes">
+			<div class="colonne">
+				<div class="ligne-url">
+					<input id="wsAfficheurClientURL" type="text" value="ws://localhost:12212/serial/DISPLAYER"/>
+					<input type="button" value="Connecter" onclick="connecterAfficheurClient()"/>
+				</div>
+			</div>
+			<div class="colonne colonne-affichage">
 				<textarea id="afficheurClient" rows="2" cols="20" class="afficheurClient"></textarea>
-			</td>
-		</tr>
-	</table>
-	<br>
-	<div>
-		<table>
-			<tr>
-				<td>
-					<table>
-						<tr>
-							<td><h3>TakePOS</h3></td>
-						</tr>
-						<tr>
-							<td><span class="etat etat-ferme" id="statusTakePOS"></span><input id="wsTakePOSURL" type="text" size="30" value="ws://localhost:12212/takepos"/>&nbsp;<input type="button" value="Connecter" onclick="connecterTakePOS()"/></td>
-						</tr>
-						<tr>
-							<td><textarea id="balanceResponse" rows="1" cols="44"></textarea></td>
-						<tr>
-							<td>
-								<table>
-									<tr>
-										<td><label>Prix unitaire: </label></td><td><input id="unitPrice" type="text" size="7" value="20.25"/></td>
-									</tr>
-									<tr>
-										<td><label>Tare: </label></td><td><input id="tare" type="text" size="7" value=""/></td>
-									</tr>
-									<tr>
-										<td><label>Texte: </label></td><td><input id="text" type="text" size="13" value=""/></td>
-									</tr>
-								</table>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<input type="button" value="Envoyer" onclick="envoyerCommandeTakePOS()"/>
-								<input type="button" value="ENQ" onclick="ENQ()"/>
-								<input type="button" value="NAK ?" onclick="pourquoiNAK()"/>
-								<input type="button" value="Poids ?" onclick="askForWeight(document.getElementById('unitPrice').value)"/>
-								<label>Poids: </label><input id="receivedWeight" type="text" size="5"/>
-							</td>
-						</tr>
-						<tr>
-							<td><label>Status: </label><textarea id="balanceStatus" rows="1" cols="30"></textarea></td>
-						</tr>
-					</table>
-				</td>
-				<td>
-					<table>
-						<tr>
-							<td><h3>Balance</h3></td>
-						</tr>
-						<tr>
-							<td><span class="etat etat-ferme" id="statusBalance"></span><input id="wsBalanceURL" type="text" size="30" value="ws://localhost:12212/balance"/>&nbsp;<input type="button" value="Connecter" onclick="connecterBalance()"/></td>
-						</tr>
-						<tr>
-							<td><textarea id="balanceRequest" rows="1" cols="44"></textarea></td>
-						</tr>
-						<tr>
-							<td>
-								<table>
-									<tr>
-										<td><label>Prix unitaire reçu: </label></td><td><input id="receivedUnitPrice" type="text" size="7" value=""/></td>
-									</tr>
-									<tr>
-										<td><label>Tare reçue: </label></td><td><input id="receivedTare" type="text" size="7" value=""/></td>
-									</tr>
-									<tr>
-										<td><label>Texte reçu: </label></td><td><input id="receivedText" type="text" size="13" value=""/></td>
-									<tr>
-								</table>
-							</td>
-						</tr>
-						<tr>
-							<td><label>Poids à renvoyer: </label><input id="poids" type="text" size="8" value="0.42"/><input id="weightUnit" type="text" size="2" value="kg"/></td>
-						</tr>
-						<tr>
-							<td style="padding-top: 3px;"><label>Status: </label><input id="status" type="text" value="" size="3"/><label>Erreur à renvoyer: </label><input id="erreur" type="text" value="11" size="4"/></td>
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
+			</div>
+		</div>
+	</section>
+
+	<!-- Dialogue caisse <-> balance : TakePOS face à la Balance -->
+	<div class="rangee">
+		<section class="panneau">
+			<div class="panneau-entete">
+				<span class="etat etat-ferme" id="statusTakePOS"></span>
+				<h3>TakePOS <small>(caisse)</small></h3>
+			</div>
+			<div class="panneau-corps">
+				<div class="ligne-url">
+					<input id="wsTakePOSURL" type="text" value="ws://localhost:12212/takepos"/>
+					<input type="button" value="Connecter" onclick="connecterTakePOS()"/>
+				</div>
+				<textarea id="balanceResponse" rows="1" class="trame"></textarea>
+				<div class="champs">
+					<label>Prix unitaire&nbsp;:</label><input id="unitPrice" type="text" size="7" value="20.25"/>
+					<label>Tare&nbsp;:</label><input id="tare" type="text" size="7" value=""/>
+					<label>Texte&nbsp;:</label><input id="text" type="text" size="13" value=""/>
+				</div>
+				<div class="boutons">
+					<input type="button" value="Envoyer" onclick="envoyerCommandeTakePOS()"/>
+					<input type="button" value="ENQ" onclick="ENQ()"/>
+					<input type="button" value="NAK ?" onclick="pourquoiNAK()"/>
+					<input type="button" value="Poids ?" onclick="askForWeight(document.getElementById('unitPrice').value)"/>
+					<label>Poids&nbsp;:</label><input id="receivedWeight" type="text" size="5"/>
+				</div>
+				<div class="champs">
+					<label>Status&nbsp;:</label><textarea id="balanceStatus" rows="1" class="trame"></textarea>
+				</div>
+			</div>
+		</section>
+
+		<section class="panneau">
+			<div class="panneau-entete">
+				<span class="etat etat-ferme" id="statusBalance"></span>
+				<h3>Balance <small>(scale)</small></h3>
+			</div>
+			<div class="panneau-corps">
+				<div class="ligne-url">
+					<input id="wsBalanceURL" type="text" value="ws://localhost:12212/balance"/>
+					<input type="button" value="Connecter" onclick="connecterBalance()"/>
+				</div>
+				<textarea id="balanceRequest" rows="1" class="trame"></textarea>
+				<div class="champs">
+					<label>Prix unitaire reçu&nbsp;:</label><input id="receivedUnitPrice" type="text" size="7" value=""/>
+					<label>Tare reçue&nbsp;:</label><input id="receivedTare" type="text" size="7" value=""/>
+					<label>Texte reçu&nbsp;:</label><input id="receivedText" type="text" size="13" value=""/>
+				</div>
+				<div class="champs">
+					<label>Poids à renvoyer&nbsp;:</label><input id="poids" type="text" size="8" value="0.42"/><input id="weightUnit" type="text" size="2" value="kg"/>
+				</div>
+				<div class="champs">
+					<label>Status&nbsp;:</label><input id="status" type="text" value="" size="3"/>
+					<label>Erreur à renvoyer&nbsp;:</label><input id="erreur" type="text" value="11" size="4"/>
+				</div>
+			</div>
+		</section>
 	</div>
-	<br>
-	<table>
-		<tr>
-			<td>
-			<table>
-				<tr>
-					<td><h3>POS Printer</h3></td>
-				</tr>
-				<tr>
-					<td><span class="etat etat-ferme" id="statusPOSPrinter"></span><input id="wsPOSPrinterURL" type="text" size="30" value="ws://localhost:12212/posprinter"/>&nbsp;<input type="button" value="Connecter" onclick="connecterPOSPrinter()"/></td>
-				</tr>
-				<tr>
-					<td><textarea id="wsPOSPrinterText" rows="5" cols="30">G0AbQBthAEhlbGxvIFdvcmxkCh0hERthAUVTQy9QT1MgUHJpbnRlciBUZXN0Ch0hABthAkdvb2RieWUgV29ybGQKHVZBAw==</textarea></td>
-				</tr>
-				<tr>
-					<td><input type="button" value="Imprimer" onclick="imprimer()"/></td>
-				</tr>
-			</table>
-		</td>
-		<td>
-			<div id="wsPOSPrinterOutputContent">&nbsp;</div>
-		</td>
-	</table>
-	<br>
-	<div>
-		<table>
-			<tr>
-				<td><h3>WebSocket de test</h3></td>
-			</tr>
-			<tr>
-				<td><span class="etat etat-ferme" id="statusConsole"></span><input id="wsConsoleURL" type="text" size="30" value="ws://localhost:12212/console"/>&nbsp;<input type="button" value="Connecter" onclick="connecterConsole()"/></td>
-			</tr>
-			<tr>
-				<td><input id="wsConsoleText" type="text" value="test"/></td>
-			</tr>
-			<tr>
-				<td><input type="button" value="Envoyer" onclick="envoyer()"/></td>
-			</tr>
-		</table>
-	</div>
+
+	<!-- Imprimante : commande à gauche, rendu du ticket à droite -->
+	<section class="panneau">
+		<div class="panneau-entete">
+			<span class="etat etat-ferme" id="statusPOSPrinter"></span>
+			<h3>POS Printer</h3>
+		</div>
+		<div class="panneau-corps deux-colonnes">
+			<div class="colonne">
+				<div class="ligne-url">
+					<input id="wsPOSPrinterURL" type="text" value="ws://localhost:12212/posprinter"/>
+					<input type="button" value="Connecter" onclick="connecterPOSPrinter()"/>
+				</div>
+				<textarea id="wsPOSPrinterText" rows="5">G0AbQBthAEhlbGxvIFdvcmxkCh0hERthAUVTQy9QT1MgUHJpbnRlciBUZXN0Ch0hABthAkdvb2RieWUgV29ybGQKHVZBAw==</textarea>
+				<div class="boutons">
+					<input type="button" value="Imprimer" onclick="imprimer()"/>
+				</div>
+			</div>
+			<div class="colonne colonne-ticket">
+				<div id="wsPOSPrinterOutputContent">&nbsp;</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- WebSocket de test (rarement utilisé) -->
+	<section class="panneau panneau-discret">
+		<div class="panneau-entete">
+			<span class="etat etat-ferme" id="statusConsole"></span>
+			<h3>WebSocket de test</h3>
+		</div>
+		<div class="panneau-corps">
+			<div class="ligne-url">
+				<input id="wsConsoleURL" type="text" value="ws://localhost:12212/console"/>
+				<input type="button" value="Connecter" onclick="connecterConsole()"/>
+			</div>
+			<div class="boutons">
+				<input id="wsConsoleText" type="text" value="test"/>
+				<input type="button" value="Envoyer" onclick="envoyer()"/>
+			</div>
+		</div>
+	</section>
 </body>
 <script type="text/javascript">
 reconnecterTout();
