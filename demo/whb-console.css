@@ -2,10 +2,14 @@
    Console de simulation caisse — mise en page
    ============================================================ */
 
-body {
-	margin: 0;
-	padding: 12px;
+html {
 	background-color: #eef1f4;
+}
+
+body {
+	max-width: 900px;
+	margin: 0 auto;
+	padding: 12px;
 	font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 	font-size: 14px;
 	color: #222;
