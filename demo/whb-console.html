@@ -49,9 +49,9 @@
 				</div>
 				<textarea id="balanceResponse" rows="1" class="trame"></textarea>
 				<div class="champs">
-					<label>Prix unitaire&nbsp;:</label><input id="unitPrice" type="text" size="7" value="20.25"/>
-					<label>Tare&nbsp;:</label><input id="tare" type="text" size="7" value=""/>
-					<label>Texte&nbsp;:</label><input id="text" type="text" size="13" value=""/>
+					<label>Prix unitaire&nbsp;:</label><input id="unitPrice" class="inputFloat" type="text" size="7" value="20.25"/>
+					<label>Tare&nbsp;:</label><input id="tare" class="inputFloat" type="text" size="7" value=""/>
+					<label>Texte&nbsp;:</label><input id="text" class="inputText" type="text" size="13" value=""/>
 				</div>
 				<div class="boutons">
 					<input type="button" value="Envoyer" onclick="envoyerCommandeTakePOS()"/>
@@ -78,9 +78,9 @@
 				</div>
 				<textarea id="balanceRequest" rows="1" class="trame"></textarea>
 				<div class="champs">
-					<label>Prix unitaire reçu&nbsp;:</label><input id="receivedUnitPrice" type="text" size="7" value=""/>
-					<label>Tare reçue&nbsp;:</label><input id="receivedTare" type="text" size="7" value=""/>
-					<label>Texte reçu&nbsp;:</label><input id="receivedText" type="text" size="13" value=""/>
+					<label>Prix reçu&nbsp;:</label><input id="receivedUnitPrice" class="inputFloat" type="text" size="7" value=""/>
+					<label>Tare reçue&nbsp;:</label><input id="receivedTare" class="inputFloat" type="text" size="7" value=""/>
+					<label>Texte reçu&nbsp;:</label><input id="receivedText" class="inputText" type="text" size="13" value=""/>
 				</div>
 				<div class="champs">
 					<label>Poids à renvoyer&nbsp;:</label><input id="poids" type="text" size="8" value="0.42"/><input id="weightUnit" type="text" size="2" value="kg"/>
