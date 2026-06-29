@@ -55,15 +55,16 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
             log.debug("Serial Read Thread started for {}", mapping.getName());
 
             while (isRunning) {
-                if (serialPort.isOpen()) {
-                    int bytesAvailable = serialPort.bytesAvailable();
+                SerialPort port = serialPort;
+                if (port != null && port.isOpen()) {
+                    int bytesAvailable = port.bytesAvailable();
                     if (bytesAvailable == 0) {
                         // No data coming from COM portName
                         ThreadUtil.silentSleep(10);
                         continue;
                     } else if (bytesAvailable == -1) {
                         // Check if portName closed unexpected (e.g. Unplugged)
-                        serialPort.closePort();
+                        port.closePort();
 
                         try {
                             server.messageToService("/notification", objectMapper.writeValueAsString(new NotificationDTO("WARNING", "Serial Port", "Serial " + mapping.getName() + "(" + mapping.getType() + ") unplugged")));
@@ -79,12 +80,16 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
                     int bytesToRead = mapping.getReadMultipleBytes() ? bytesAvailable : 1;
 
                     byte[] receivedData = new byte[bytesToRead];
-                    serialPort.readBytes(receivedData, bytesToRead);
+                    port.readBytes(receivedData, bytesToRead);
 
                     if (server != null) {
                         if (Objects.equals(mapping.getReadCharset(), BINARY)) server.messageToServer(getChannel(), receivedData);
                         else server.messageToServer(getChannel(), new String(receivedData, Charset.forName(mapping.getReadCharset())));
                     }
+                } else {
+                    // Port absent/fermé : éviter une boucle à 100% CPU (aucune pause) qui
+                    // affamerait le serveur HTTP/WS. Le monitorThread (ré)ouvre le port.
+                    ThreadUtil.silentSleep(100);
                 }
             }
 
@@ -96,14 +101,18 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
             log.debug("Serial Write Thread started for {}", mapping.getName());
 
             while (isRunning) {
-                if (serialPort.isOpen()) {
+                SerialPort port = serialPort;
+                if (port != null && port.isOpen()) {
                 	try {
 						byte[] message = transferQueue.take();
 	                    log.info("Bytes: {}", Hex.encodeHexString(message));
-	                    serialPort.writeBytes(message, message.length);
+	                    port.writeBytes(message, message.length);
 					} catch (InterruptedException e) {
 						log.error("Error writing on serial " + mapping.getName());
 					}
+                } else {
+                    // Port absent/fermé : éviter la boucle à 100% CPU. Le monitorThread (ré)ouvre.
+                    ThreadUtil.silentSleep(100);
                 }
             }
 
