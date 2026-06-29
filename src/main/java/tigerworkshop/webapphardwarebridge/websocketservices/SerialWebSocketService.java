@@ -3,6 +3,7 @@ package tigerworkshop.webapphardwarebridge.websocketservices;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fazecast.jSerialComm.SerialPort;
+import com.fazecast.jSerialComm.SerialPortInvalidPortException;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
 import tigerworkshop.webapphardwarebridge.dtos.Config;
@@ -23,7 +24,7 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Config.SerialMapping mapping;
-    private final SerialPort serialPort;
+    private volatile SerialPort serialPort;
     private TransferQueue<byte[]> transferQueue = new LinkedTransferQueue<>();
 
     private Thread readThread;
@@ -39,12 +40,34 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
 
         this.mapping = newMapping;
 
-        this.serialPort = SerialPort.getCommPort(newMapping.getName());
+        // Le port n'est pas résolu ici : getCommPort() lève une exception si le
+        // périphérique est absent au démarrage, ce qui faisait définitivement échouer
+        // le service (redémarrage du WHB obligatoire). La résolution + ouverture est
+        // désormais (re)tentée par le monitorThread (voir openSerialPort()), donc un
+        // périphérique éteint au démarrage puis allumé est pris en compte à chaud.
+    }
 
-        if (mapping.getBaudRate() != null) serialPort.setBaudRate(mapping.getBaudRate());
-        if (mapping.getNumDataBits() != null) serialPort.setNumDataBits(mapping.getNumDataBits());
-        if (mapping.getNumStopBits() != null) serialPort.setNumStopBits(mapping.getNumStopBits());
-        if (mapping.getParity() != null) serialPort.setParity(mapping.getParity());
+    /**
+     * (Re)tente de résoudre puis d'ouvrir le port série. Tolérant à l'absence du
+     * périphérique : s'il n'existe pas encore, on réessaiera au cycle suivant du monitor.
+     */
+    private void openSerialPort() {
+        try {
+            SerialPort port = SerialPort.getCommPort(mapping.getName());
+
+            if (mapping.getBaudRate() != null) port.setBaudRate(mapping.getBaudRate());
+            if (mapping.getNumDataBits() != null) port.setNumDataBits(mapping.getNumDataBits());
+            if (mapping.getNumStopBits() != null) port.setNumStopBits(mapping.getNumStopBits());
+            if (mapping.getParity() != null) port.setParity(mapping.getParity());
+
+            if (port.openPort(1000)) {
+                serialPort = port;
+                log.info("Serial {} is now open", mapping.getName());
+            }
+        } catch (SerialPortInvalidPortException e) {
+            // Périphérique absent (éteint/débranché) : nouvelle tentative au prochain cycle.
+            log.debug("Serial {} not present yet: {}", mapping.getName(), e.getMessage());
+        }
     }
 
     @Override
@@ -123,15 +146,13 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
             log.debug("Serial Monitor Thread started for {}", mapping.getName());
 
             while (isRunning) {
-                if (serialPort.isOpen()) {
+                SerialPort port = serialPort;
+                if (port != null && port.isOpen()) {
                     ThreadUtil.silentSleep(1000);
                 } else {
-                    log.info("Trying to connect to serial @ {}", serialPort.getSystemPortName());
-                    serialPort.openPort(1000);
-
-                    if (serialPort.isOpen()) {
-                        log.info("Serial {} is now open", mapping.getName());
-                    }
+                    log.info("Trying to connect to serial @ {}", mapping.getName());
+                    openSerialPort();
+                    ThreadUtil.silentSleep(1000);
                 }
             }
 
@@ -153,7 +174,8 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
         writeThread.interrupt();
         monitorThread.interrupt();
 
-        serialPort.closePort();
+        SerialPort port = serialPort;
+        if (port != null) port.closePort();
 
         log.info("Stopped SerialWebSocketService");
     }
