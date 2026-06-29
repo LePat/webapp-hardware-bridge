@@ -188,8 +188,15 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
     @Override
     public void messageToService(byte[] message) {
     	// Producer
-    	transferQueue.add(message);
-        //writeBuffer = message;
+    	// Ne pas accumuler les écritures quand le port est fermé (périphérique éteint) :
+    	// sinon la file se viderait d'un bloc à la reconnexion, déversant des trames
+    	// périmées (ex. mises à jour d'afficheur obsolètes) au périphérique.
+    	SerialPort port = serialPort;
+    	if (port != null && port.isOpen()) {
+    		transferQueue.add(message);
+    	} else {
+    		log.debug("Serial {} closed, dropping {} byte(s) write", mapping.getName(), message.length);
+    	}
     }
 
     @Override
