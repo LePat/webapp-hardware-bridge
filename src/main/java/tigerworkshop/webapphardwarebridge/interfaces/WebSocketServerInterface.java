@@ -13,4 +13,6 @@ public interface WebSocketServerInterface {
     void registerService(WebSocketServiceInterface service);
 
     void unregisterService(WebSocketServiceInterface service);
+
+    void disconnectChannel(String channel, int code, String reason);
 }

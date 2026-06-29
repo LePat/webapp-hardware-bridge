@@ -135,7 +135,15 @@ public class Server implements WebSocketServerInterface {
                     javalinServer.ws(serialWebSocketService.getChannel(), ws -> {
                         ws.onConnect(ctx -> {
                             log.info("{} connected to {}", ctx.host(), serialWebSocketService.getChannel());
-                            addSocketToChannel(serialWebSocketService.getChannel(), ctx);
+                            // Pastille TakePOS représentative : ne garder la WS que si le port
+                            // série est réellement ouvert. Sinon on ferme aussitôt (le client passe
+                            // à 'déconnecté' et retentera). Le 101 est émis puis fermé proprement,
+                            // donc pas de handshake en échec qui saturerait la file d'admission WS.
+                            if (serialWebSocketService.isPortOpen()) {
+                                addSocketToChannel(serialWebSocketService.getChannel(), ctx);
+                            } else {
+                                ctx.closeSession(4001, "serial port closed");
+                            }
                         });
 
                         ws.onClose(ctx -> {
@@ -448,6 +456,20 @@ public class Server implements WebSocketServerInterface {
         ConcurrentLinkedQueue<WsContext> connectionList = getSocketsForChannel(channel);
         connectionList.remove(socket);
         socketChannelSubscriptions.put(channel, connectionList);
+    }
+
+    @Override
+    public void disconnectChannel(String channel, int code, String reason) {
+        ConcurrentLinkedQueue<WsContext> connectionList = getSocketsForChannel(channel);
+        for (Iterator<WsContext> it = connectionList.iterator(); it.hasNext(); ) {
+            WsContext conn = it.next();
+            try {
+                conn.closeSession(code, reason);
+            } catch (Exception e) {
+                log.warn("Failed to close session on {}: {}", channel, e.getMessage());
+            }
+            it.remove();
+        }
     }
 
     /*

@@ -97,6 +97,13 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
 
                         log.warn("Serial {} unplugged", mapping.getName());
 
+                        // Fermer les WS clients du canal -> les pastilles TakePOS passent à
+                        // 'déconnecté' immédiatement ; elles se reconnecteront quand le monitor
+                        // aura rouvert le port (onConnect les accepte de nouveau).
+                        if (server != null) {
+                            server.disconnectChannel(getChannel(), 4001, "serial port closed");
+                        }
+
                         continue;
                     }
 
@@ -212,5 +219,11 @@ public class SerialWebSocketService implements WebSocketServiceInterface {
     @Override
     public String getChannel() {
         return "/serial/" + mapping.getType();
+    }
+
+    /** True si le port série est résolu et ouvert (périphérique présent et utilisable). */
+    public boolean isPortOpen() {
+        SerialPort port = serialPort;
+        return port != null && port.isOpen();
     }
 }
