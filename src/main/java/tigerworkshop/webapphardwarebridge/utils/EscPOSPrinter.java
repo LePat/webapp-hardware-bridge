@@ -1,8 +1,8 @@
 package tigerworkshop.webapphardwarebridge.utils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -28,32 +28,36 @@ public class EscPOSPrinter {
 	}
 
 	public static void convertReceiptToHTML() throws IOException, InterruptedException {
-		String[] commandes = new String[] { "php", ESCPOS_TO_HTML, FILENAME + BINARY_EXTENSION };
-		ProcessBuilder processBuilder = new ProcessBuilder(commandes);
-		Process process = processBuilder.start();
-		process.getErrorStream().transferTo(System.err);
 		File receiptHTML = new File(FILENAME + HTML_EXTENSION);
-		FileOutputStream fos = new FileOutputStream(receiptHTML);
-		process.getInputStream().transferTo(fos);
-		process.waitFor();
-		fos.close();
+
+		ProcessBuilder processBuilder = new ProcessBuilder("php", ESCPOS_TO_HTML, FILENAME + BINARY_EXTENSION);
+		// stdout du script -> fichier HTML ; stderr -> stderr de la JVM. Évite le pompage
+		// manuel des flux : plus de FileOutputStream à fermer (fuite sur exception) ni de
+		// risque de deadlock de buffer de pipe (stderr drainé entièrement avant stdout).
+		processBuilder.redirectOutput(receiptHTML);
+		processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+		Process process = processBuilder.start();
+		try {
+			process.waitFor();
+		} finally {
+			if (process.isAlive()) {
+				process.destroy();
+			}
+		}
 	}
 	
 	public static void sendPrintedReceipt(ConcurrentLinkedQueue<WsContext> concurrentLinkedQueue, String channelPOSPrinter) {
-		byte[] fileContent;
+		// Files.readAllBytes et new String ne renvoient jamais null (ils jettent), donc
+		// pas de garde null : succès -> on diffuse le HTML, IOException -> on diffuse "empty".
 		try {
-			fileContent = Files.readAllBytes(Paths.get(FILENAME + HTML_EXTENSION));
-			if (fileContent != null) {
-				String outputHTML = new String(fileContent, "UTF-8");
-				if (outputHTML != null) {
-					concurrentLinkedQueue.forEach(client -> client.send(outputHTML));
-					return;
-				}
-			}
+			byte[] fileContent = Files.readAllBytes(Paths.get(FILENAME + HTML_EXTENSION));
+			String outputHTML = new String(fileContent, StandardCharsets.UTF_8);
+			concurrentLinkedQueue.forEach(client -> client.send(outputHTML));
 		} catch (IOException e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			concurrentLinkedQueue.forEach(client -> client.send("empty"));
 		}
-		concurrentLinkedQueue.forEach(client -> client.send("empty"));
 	}
 
 	public static void convertReceiptToHTMLAndSendResult(byte[] data, boolean base64Encoded, ConcurrentLinkedQueue<WsContext> socketsForChannel, String channelPOSPrinter) throws IOException, InterruptedException {
