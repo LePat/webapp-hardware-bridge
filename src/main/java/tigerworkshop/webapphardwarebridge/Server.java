@@ -244,12 +244,12 @@ public class Server implements WebSocketServerInterface {
             ws.onMessage(ctx -> {
                 log.info("{} sent message to {}: {}", ctx.host(), channelPOSPrinter, ctx.message());
                 PrintDocument printDocument = objectMapper.readValue(ctx.message(), PrintDocument.class);
-                EscPOSPrinter.convertReceiptToHTMLAndSendResult(printDocument.getRawContent().getBytes(), getSocketsForChannel(channelPOSPrinter), channelPOSPrinter);
+                EscPOSPrinter.convertReceiptToHTMLAndSendResult(printDocument.getRawContent().getBytes(), true, getSocketsForChannel(channelPOSPrinter), channelPOSPrinter);
             });
 
             ws.onBinaryMessage(ctx -> {
                 log.info("{} sent binary message to {}: {}", ctx.host(), channelPOSPrinter, ctx.data());
-                EscPOSPrinter.convertReceiptToHTMLAndSendResult(ctx.data(), getSocketsForChannel(channelPOSPrinter), channelPOSPrinter);
+                EscPOSPrinter.convertReceiptToHTMLAndSendResult(ctx.data(), false, getSocketsForChannel(channelPOSPrinter), channelPOSPrinter);
             });
         });
         
