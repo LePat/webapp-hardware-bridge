@@ -8,7 +8,7 @@
 
 - Webapp-Hardware-Bridge GUI or Server is running
 - run command (on linux) like `socat -dddd pty,raw,echo=0 pty,raw,echo=0` to simulate serial ports needed and configure them in WHB. It creates two virtual serial ports /dev/pts/1 and /dev/pts/2 which are connected, setup them to /serial/DISPLAY and /serial/DISPLAYER to watch Customer Display changes requested by TakePOS
-- escpos-tools project is available near webapp-hardware-bridge project (both projects are in the same directory) as Webapp-Hardware-Bridge runs `../escpos-tools/esc2html.php` command to convert Base64 stream from TakePOS in the format ESC-POS received on the websocket /posprinter to HTML page representing the printed receipt. The converted receipt is sent back to the /posprinter websocket.
+- escpos-tools project must be cloned into `demo/escpos-tools` (see BUILD.md) as Webapp-Hardware-Bridge runs `demo/escpos-tools/esc2html.php` command to convert Base64 stream from TakePOS in the format ESC-POS received on the websocket /posprinter to HTML page representing the printed receipt. The converted receipt is sent back to the /posprinter websocket.
 - to simulate continuous weight transmission through serial port (like AWH-30 Weighing Scale), launch the command `watch -n 1 ./2kg13.sh /dev/pts/5` in demo directory (/dev/pts/5 depends on virtual serial port created by socat command)
 - websockets /takepos and /balance are connected inside Webapp-Hardware-Bridge (hard coded in Server.java): every data received by /takepos is sent to /balance and vice versa. Useful to simulate various weighing scale protocols (for now only Dialog-06...).
 

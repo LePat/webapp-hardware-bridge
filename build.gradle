@@ -81,12 +81,15 @@ tasks.register('stageInstaller', Sync) {
 
 tasks.register('buildInstaller', Exec) {
     group = 'distribution'
-    description = 'Builds whb.exe with NSIS (needs makensis on PATH, and ./jre + ./demo present)'
+    description = 'Builds whb.exe with NSIS (needs makensis on PATH, ./jre, and demo/escpos-tools present)'
     dependsOn stageInstaller
 
     doFirst {
         if (!file('jre').isDirectory()) {
             throw new GradleException("./jre is missing - copy a JRE 21 there first, see BUILD.md.")
+        }
+        if (!file('demo/escpos-tools').isDirectory()) {
+            throw new GradleException("demo/escpos-tools is missing - clone the escpos-tools repo there first, see BUILD.md.")
         }
     }
 
@@ -104,12 +107,15 @@ def appImageToolFile = layout.projectDirectory.file('appimagetool.AppImage')
 
 tasks.register('stageAppImage', Sync) {
     group = 'distribution'
-    description = 'Stages an AppDir for AppImage packaging (needs ./jre-linux, a Linux x64 JRE 21)'
+    description = 'Stages an AppDir for AppImage packaging (needs ./jre-linux and demo/escpos-tools present)'
     dependsOn stageInstaller
 
     doFirst {
         if (!file('jre-linux').isDirectory()) {
             throw new GradleException("./jre-linux is missing - copy a Linux x64 JRE 21 there first, see BUILD.md.")
+        }
+        if (!file('demo/escpos-tools').isDirectory()) {
+            throw new GradleException("demo/escpos-tools is missing - clone the escpos-tools repo there first, see BUILD.md.")
         }
     }
 

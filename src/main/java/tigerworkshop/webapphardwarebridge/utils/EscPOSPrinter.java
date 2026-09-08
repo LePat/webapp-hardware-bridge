@@ -14,8 +14,10 @@ import io.javalin.websocket.WsContext;
 
 public class EscPOSPrinter {
 
-	private final static String ESCPOS_TO_HTML = "../escpos-tools/esc2html.php";
-	private final static String FILENAME = "../escpos-tools/escpos-printer";
+	// escpos-tools is a separate git repo, cloned into demo/escpos-tools (see BUILD.md) -
+	// this is debug-console-only (POS simulation), never used by production printing.
+	private final static String ESCPOS_TO_HTML = "demo/escpos-tools/esc2html.php";
+	private final static String FILENAME = "demo/escpos-tools/escpos-printer";
 	private final static String BINARY_EXTENSION = ".bin";
 	private final static String HTML_EXTENSION = ".html";
 

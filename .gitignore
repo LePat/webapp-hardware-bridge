@@ -5,6 +5,7 @@ log/
 out/
 jre/
 jre-linux/
+demo/escpos-tools/
 build/
 bin/
 .idea/workspace.xml

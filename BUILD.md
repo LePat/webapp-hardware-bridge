@@ -4,10 +4,29 @@
 
 - JDK 21, [Eclipse Temurin 21](https://adoptium.net/en-GB/temurin/releases/) Recommanded
 - Intelij IDEA (Both Community and Ultimate works)
+- PHP (any recent version) on `PATH` - only needed to run the debug console's POS-printer
+  simulation (see below), not for production use.
 
 1. An artifact config file is included in git repository.
 
 2. Use Intelij IDEA to "Build artifact" to yield `out\artifacts\webapp_hardware_bridge_jar`.
+
+### Debug console POS-printer simulation (demo/escpos-tools)
+
+The debug console's `/posprinter` simulation (converts an ESC/POS stream to an HTML
+preview of the receipt) shells out to a PHP script from the separate escpos-tools
+repo - clone it into `demo/escpos-tools` (`esc2html.php` should end up at
+`demo/escpos-tools/esc2html.php`):
+
+```
+git clone <escpos-tools-repo-url> demo/escpos-tools
+```
+
+This is only used by the debug console (never by production printing, which goes
+through `PrinterWebSocketService`/`javax.print`), but it's still packaged into
+`demo/` for both the Windows installer and the Linux AppImage since the debug console
+ships with the app. `buildInstaller`/`buildAppImage` fail fast with a clear error if
+`demo/escpos-tools` is missing.
 
 ## Windows Installer bundled with JRE
 
