@@ -32,6 +32,12 @@ dependencies {
     implementation group: 'io.javalin', name: 'javalin', version: '6.2.0'
     implementation group: 'io.javalin.community.ssl', name: 'ssl-plugin', version: '6.2.0'
 
+    // Linux tray icon/menu: java.awt.TrayIcon's X11 peer can't reliably report click
+    // coordinates or menu size under GNOME/Wayland (see GUI.java). dorkbox SystemTray
+    // uses native GtkStatusIcon/AppIndicator on Linux instead, so the desktop itself
+    // positions and renders the menu.
+    implementation group: 'com.dorkbox', name: 'SystemTray', version: '4.4'
+
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
