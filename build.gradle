@@ -6,8 +6,12 @@ plugins {
 group 'webapp-hardware-bridge'
 version '1.0.2'
 
-sourceCompatibility = '21'
-targetCompatibility = '21'
+// Gradle 8.x : ces proprietes doivent etre dans le bloc java {}, pas a la racine
+// (l'acces racine passe par JavaPluginConvention, supprime en Gradle 9).
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 repositories {
     mavenCentral()
@@ -44,8 +48,14 @@ application {
 jar {
     archiveFileName = 'webapp-hardware-bridge.jar'
     manifest {
-    	attributes "Main-Class": "tigerworkshop.webapphardwarebridge.GUI"
-        attributes "Class-Path": configurations.runtimeClasspath.files.collect { it.getName() }.join(' ')
+        attributes(
+            'Main-Class': 'tigerworkshop.webapphardwarebridge.GUI',
+            // provider {} : la resolution du classpath est repoussee a l'execution
+            // de la tache au lieu de la phase de configuration.
+            'Class-Path': provider {
+                configurations.runtimeClasspath.files.collect { it.name }.join(' ')
+            }
+        )
     }
 }
 
@@ -100,7 +110,8 @@ tasks.register('stageAppImage', Sync) {
     from(installerStagingDir) { into 'usr/lib/webapp-hardware-bridge' }
     from(linuxRuntimeDir) { into 'usr/lib/webapp-hardware-bridge/jre' }
     from('demo') { into 'usr/lib/webapp-hardware-bridge/demo' }
-    from('packaging/linux/AppRun') { fileMode 0755 }
+    // fileMode est deprecie depuis Gradle 8.3, remplace par filePermissions
+    from('packaging/linux/AppRun') { filePermissions { unix('0755') } }
     from('packaging/linux/webapp-hardware-bridge.desktop')
     from('src/main/resources/icon.png') { rename { 'webapp-hardware-bridge.png' } }
     into(appDir)
