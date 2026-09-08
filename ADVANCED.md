@@ -41,7 +41,7 @@ Chrome: Add `--allow-running-insecure-content` to launching argument
 
 WHB have built-in ability to generate self-signed certificate.
 
-Set `server.tls.enabled` to true, `server.tls.selfSigned` to true in `setting.json` and relaunch the application.
+Set `server.tls.enabled` to true, `server.tls.selfSigned` to true in `config.json` and relaunch the application.
 
 Upon start, application should automatically generate a self-signed certificate
 
@@ -55,7 +55,7 @@ After change, point url to `wss://127.0.0.1:12212` instead of `ws://127.0.0.1:12
 
 Copy your certificate and private key to `tls` directory.
 
-Set `server.tls.enabled` to true, `server.tls.selfSigned` to false, `server.tls.cert` and `server.tls.key` in `setting.json` and relaunch the application.
+Set `server.tls.enabled` to true, `server.tls.selfSigned` to false, `server.tls.cert` and `server.tls.key` in `config.json` and relaunch the application.
 
 Upon start, application should pickup your certificate and start listening on `wss://127.0.0.1:12212` with secured connection.
 

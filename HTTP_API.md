@@ -20,6 +20,10 @@ Return list of available printers.
 
 Return list of available serial ports.
 
+## GET /system/version.json
+
+Return application name, id and version.
+
 ## POST /system/restart.json
 
 Restart WebSocket/Web server

@@ -35,4 +35,4 @@
 
 [serial-basic](../demo/serial-basic.html)
 
-[serial-weight](../demo/serial-weight.html)
+[serial-weigh](../demo/serial-weigh.html)

@@ -84,7 +84,7 @@ Therefore, WebApps do not need to care about the actual printer names.
 - [Advanced Configurations - Authentication](ADVANCED.md#authentication)
 - [Advanced Configurations - HTTPS/WSS Support](ADVANCED.md#httpswss-support)
 - [Build from source](BUILD.md)
-- [Code signing (Windows)](docs/CODE_SIGNING.md)
+- [Code signing (Windows)](doc/CODE_SIGNING.md)
 - [Troubleshooting](TROUBLESHOOT.md)
 
 ## Upgrade

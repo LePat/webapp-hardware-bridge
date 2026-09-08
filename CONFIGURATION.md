@@ -47,7 +47,7 @@
 
 #### Key
 
-- (Default) `tls/default-cert.pem`
+- (Default) `tls/default-key.pem`
 
 #### CA Bundle
 
@@ -59,7 +59,7 @@
 
 Directory to save downloaded files
 
-- (Default) `download`
+- (Default) `downloads`
 
 ### Timeout
 

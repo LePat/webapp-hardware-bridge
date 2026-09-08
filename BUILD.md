@@ -57,7 +57,7 @@ Or, with Gradle (does steps 1-3 for you, as long as `./jre` already exists and
 
 `whb.exe` built this way is **unsigned** and will trigger the Windows SmartScreen
 warning. The release pipeline (`.github/workflows/release.yml`) signs it automatically
-via SignPath once configured - see [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md).
+via SignPath once configured - see [doc/CODE_SIGNING.md](doc/CODE_SIGNING.md).
 
 ## Linux AppImage bundled with JRE
 
