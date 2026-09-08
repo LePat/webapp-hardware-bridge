@@ -32,6 +32,14 @@ jobs:
           curl -sL "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -o appimagetool.AppImage
           chmod +x appimagetool.AppImage
 
+      - name: Fetch escpos-tools (debug console POS-printer simulation)
+        # Only staged into demo/ for the debug console to use at runtime on whoever
+        # installs the app - not executed during this build, so runner-provided PHP/
+        # Composer (no imagick needed here) are enough just to produce vendor/.
+        run: |
+          git clone --depth 1 https://github.com/LePat/escpos-tools.git demo/escpos-tools
+          composer install --no-interaction --working-dir=demo/escpos-tools
+
       - name: Build AppImage
         run: ./gradlew --no-daemon buildAppImage
 
@@ -67,6 +75,14 @@ jobs:
 
       - name: Install NSIS
         run: choco install nsis -y --no-progress
+
+      - name: Fetch escpos-tools (debug console POS-printer simulation)
+        # Only staged into demo/ for the debug console to use at runtime on whoever
+        # installs the app - not executed during this build, so runner-provided PHP/
+        # Composer (no imagick needed here) are enough just to produce vendor/.
+        run: |
+          git clone --depth 1 https://github.com/LePat/escpos-tools.git demo/escpos-tools
+          composer install --no-interaction --working-dir=demo/escpos-tools
 
       - name: Build installer
         run: ./gradlew --no-daemon buildInstaller

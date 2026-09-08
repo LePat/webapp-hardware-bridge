@@ -4,8 +4,9 @@
 
 - JDK 21, [Eclipse Temurin 21](https://adoptium.net/en-GB/temurin/releases/) Recommanded
 - Intelij IDEA (Both Community and Ultimate works)
-- PHP (any recent version) on `PATH` - only needed to run the debug console's POS-printer
-  simulation (see below), not for production use.
+- PHP (any recent version) on `PATH`, with the `mbstring` and `imagick` extensions, and
+  [Composer](https://getcomposer.org/) - only needed to run the debug console's
+  POS-printer simulation (see below), not for production use.
 
 1. An artifact config file is included in git repository.
 
@@ -15,12 +16,20 @@
 
 The debug console's `/posprinter` simulation (converts an ESC/POS stream to an HTML
 preview of the receipt) shells out to a PHP script from the separate escpos-tools
-repo - clone it into `demo/escpos-tools` (`esc2html.php` should end up at
-`demo/escpos-tools/esc2html.php`):
+project - clone [our fork](https://github.com/LePat/escpos-tools) into
+`demo/escpos-tools` (`esc2html.php` should end up at `demo/escpos-tools/esc2html.php`),
+then install its PHP dependencies:
 
 ```
-git clone <escpos-tools-repo-url> demo/escpos-tools
+git clone https://github.com/LePat/escpos-tools.git demo/escpos-tools
+cd demo/escpos-tools && composer install
 ```
+
+We use our own fork rather than the
+[upstream repo](https://github.com/receipt-print-hq/escpos-tools) because upstream is
+unmaintained and crashes on PHP 8 (`implode()` argument order changed - see
+[issue #79](https://github.com/receipt-print-hq/escpos-tools/issues/79), still open).
+Our fork carries just that one fix. If upstream ever merges a fix, we can switch back.
 
 This is only used by the debug console (never by production printing, which goes
 through `PrinterWebSocketService`/`javax.print`), but it's still packaged into
