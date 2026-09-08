@@ -1,0 +1,132 @@
+name: Release
+
+# Builds the Windows installer (whb.exe, signed via SignPath when configured)
+# and the Linux AppImage, then attaches both to a GitHub Release.
+#
+# Runs on version tags (v1.0.3...) or manually via "Run workflow".
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Download bundled Linux JRE
+        run: |
+          curl -sL "https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jre/hotspot/normal/eclipse" -o jre-linux.tar.gz
+          mkdir -p jre-linux
+          tar -xzf jre-linux.tar.gz -C jre-linux --strip-components=1
+
+      - name: Download appimagetool
+        run: |
+          curl -sL "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -o appimagetool.AppImage
+          chmod +x appimagetool.AppImage
+
+      - name: Build AppImage
+        run: ./gradlew --no-daemon buildAppImage
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-appimage
+          path: '*.AppImage'
+          if-no-files-found: error
+
+  build-windows:
+    runs-on: windows-latest
+    env:
+      # Set as repository secrets once your SignPath Foundation application is
+      # approved (see docs/CODE_SIGNING.md). Left unset, the installer still
+      # builds but stays unsigned - Windows will show the SmartScreen warning.
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Download bundled Windows JRE
+        shell: pwsh
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri "https://api.adoptium.net/v3/binary/latest/21/ga/windows/x64/jre/hotspot/normal/eclipse" -OutFile jre.zip
+          Expand-Archive -Path jre.zip -DestinationPath jre-extracted
+          $inner = Get-ChildItem jre-extracted | Select-Object -First 1
+          Move-Item $inner.FullName jre
+
+      - name: Install NSIS
+        run: choco install nsis -y --no-progress
+
+      - name: Build installer
+        run: ./gradlew --no-daemon buildInstaller
+
+      - name: Upload unsigned installer (for SignPath)
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: whb-unsigned
+          path: whb.exe
+          if-no-files-found: error
+
+      - name: Submit for signing (SignPath)
+        if: env.SIGNPATH_API_TOKEN != ''
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'webapp-hardware-bridge' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG || 'whb-installer' }}
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+
+      - name: Collect final installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          if (Test-Path 'signed\whb.exe') {
+            Copy-Item 'signed\whb.exe' 'dist\whb.exe'
+          } else {
+            Write-Warning 'SIGNPATH_API_TOKEN not set (or signing skipped) - shipping an UNSIGNED installer.'
+            Copy-Item 'whb.exe' 'dist\whb.exe'
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/whb.exe
+          if-no-files-found: error
+
+  release:
+    needs: [build-linux, build-windows]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-appimage
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: dist
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.AppImage
+            dist/whb.exe
+          generate_release_notes: true

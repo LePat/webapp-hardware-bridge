@@ -42,8 +42,83 @@ application {
 }
 
 jar {
+    archiveFileName = 'webapp-hardware-bridge.jar'
     manifest {
     	attributes "Main-Class": "tigerworkshop.webapphardwarebridge.GUI"
         attributes "Class-Path": configurations.runtimeClasspath.files.collect { it.getName() }.join(' ')
     }
+}
+
+// Mirrors what the IntelliJ "webapp-hardware-bridge:jar" artifact used to produce:
+// the runnable jar plus every runtime dependency jar, flat, next to each other,
+// because the manifest's Class-Path expects them side by side.
+def installerStagingDir = layout.projectDirectory.dir('out/artifacts/webapp_hardware_bridge_jar')
+
+tasks.register('stageInstaller', Sync) {
+    group = 'distribution'
+    description = 'Stages the jar and its runtime dependencies for the NSIS installer'
+    dependsOn jar
+    from(jar.archiveFile)
+    from(configurations.runtimeClasspath)
+    into(installerStagingDir)
+}
+
+tasks.register('buildInstaller', Exec) {
+    group = 'distribution'
+    description = 'Builds whb.exe with NSIS (needs makensis on PATH, and ./jre + ./demo present)'
+    dependsOn stageInstaller
+
+    doFirst {
+        if (!file('jre').isDirectory()) {
+            throw new GradleException("./jre is missing - copy a JRE 21 there first, see BUILD.md.")
+        }
+    }
+
+    workingDir(projectDir)
+    def isWindows = System.getProperty('os.name').toLowerCase().contains('windows')
+    commandLine(isWindows ? 'makensis.exe' : 'makensis', 'install.nsi')
+}
+
+// AppImage packaging for Linux, mirroring the Windows NSIS installer:
+// a self-contained AppDir with the jar+deps, a bundled Linux JRE, and a
+// launcher script, squashed into a single portable executable.
+def linuxRuntimeDir = layout.projectDirectory.dir('jre-linux')
+def appDir = layout.projectDirectory.dir('out/AppDir')
+def appImageToolFile = layout.projectDirectory.file('appimagetool.AppImage')
+
+tasks.register('stageAppImage', Sync) {
+    group = 'distribution'
+    description = 'Stages an AppDir for AppImage packaging (needs ./jre-linux, a Linux x64 JRE 21)'
+    dependsOn stageInstaller
+
+    doFirst {
+        if (!file('jre-linux').isDirectory()) {
+            throw new GradleException("./jre-linux is missing - copy a Linux x64 JRE 21 there first, see BUILD.md.")
+        }
+    }
+
+    from(installerStagingDir) { into 'usr/lib/webapp-hardware-bridge' }
+    from(linuxRuntimeDir) { into 'usr/lib/webapp-hardware-bridge/jre' }
+    from('demo') { into 'usr/lib/webapp-hardware-bridge/demo' }
+    from('packaging/linux/AppRun') { fileMode 0755 }
+    from('packaging/linux/webapp-hardware-bridge.desktop')
+    from('src/main/resources/icon.png') { rename { 'webapp-hardware-bridge.png' } }
+    into(appDir)
+}
+
+tasks.register('buildAppImage', Exec) {
+    group = 'distribution'
+    description = 'Builds WebApp_Hardware_Bridge-x86_64.AppImage (needs appimagetool on PATH or ./appimagetool.AppImage)'
+    dependsOn stageAppImage
+
+    doFirst {
+        if (!(appImageToolFile.getAsFile().exists() || System.getenv('PATH').split(File.pathSeparator).any { new File(it, 'appimagetool').exists() })) {
+            throw new GradleException("appimagetool not found - download it to ./appimagetool.AppImage (or install on PATH), see BUILD.md.")
+        }
+    }
+
+    workingDir(projectDir)
+    environment 'ARCH', 'x86_64'
+    environment 'VERSION', project.version
+    commandLine('sh', '-c', 'command -v appimagetool >/dev/null 2>&1 && exec appimagetool "$0" || exec ./appimagetool.AppImage --appimage-extract-and-run "$0"', appDir.asFile.absolutePath)
 }

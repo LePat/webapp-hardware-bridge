@@ -4,11 +4,13 @@ gradle/
 log/
 out/
 jre/
+jre-linux/
 build/
 bin/
 .idea/workspace.xml
 config.json
 *.exe
+*.AppImage
 /.classpath
 /.project
 /.settings

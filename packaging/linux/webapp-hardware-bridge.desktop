@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=WebApp Hardware Bridge
+Comment=Silent print & serial port access for WebApps
+Exec=AppRun
+Icon=webapp-hardware-bridge
+Categories=Office;Utility;
+Terminal=false

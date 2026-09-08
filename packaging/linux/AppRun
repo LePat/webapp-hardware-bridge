@@ -1,0 +1,28 @@
+#!/bin/sh
+# Entry point executed by the AppImage runtime (or directly from an extracted AppDir).
+set -e
+
+HERE="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
+APP_DIR="$HERE/usr/lib/webapp-hardware-bridge"
+JAVA_BIN="$APP_DIR/jre/bin/java"
+
+# config.json/log/ are written next to the running executable (same layout as the
+# Windows install). $APPIMAGE (set by the AppImage runtime to the .AppImage file's own
+# path) points at the writable folder the user placed it in; fall back to $HERE when
+# running an extracted AppDir directly (e.g. during development).
+if [ -n "$APPIMAGE" ]; then
+    WORK_DIR="$(dirname -- "$APPIMAGE")"
+else
+    WORK_DIR="$HERE"
+fi
+cd "$WORK_DIR"
+
+MAIN_CLASS=tigerworkshop.webapphardwarebridge.GUI
+case "$1" in
+    --server|--cli)
+        MAIN_CLASS=tigerworkshop.webapphardwarebridge.Server
+        shift
+        ;;
+esac
+
+exec "$JAVA_BIN" -cp "$APP_DIR/webapp-hardware-bridge.jar" "$MAIN_CLASS" "$@"

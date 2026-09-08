@@ -33,6 +33,15 @@ Common use cases:
 - Serial weigh scale (AWH-SA30 supported out-of-box in JS SDK)
 - Per port settings (Baud rate, data bits, stop bit, parity bit)
 
+## Download
+
+- **Windows**: `whb.exe` installer (bundled JRE, no separate Java install needed)
+- **Linux**: `WebApp_Hardware_Bridge-*.AppImage` (bundled JRE, portable, no install needed)
+
+Both are built automatically from tagged releases - see the
+[Releases](../../releases) page. Building them yourself is documented in
+[BUILD.md](BUILD.md).
+
 ## How to use?
 
 ### Client Side
@@ -75,6 +84,7 @@ Therefore, WebApps do not need to care about the actual printer names.
 - [Advanced Configurations - Authentication](ADVANCED.md#authentication)
 - [Advanced Configurations - HTTPS/WSS Support](ADVANCED.md#httpswss-support)
 - [Build from source](BUILD.md)
+- [Code signing (Windows)](docs/CODE_SIGNING.md)
 - [Troubleshooting](TROUBLESHOOT.md)
 
 ## Upgrade
