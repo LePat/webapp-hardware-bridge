@@ -41,7 +41,7 @@ présent).
      workflow, `SIGNPATH_PROJECT_SLUG`, `SIGNPATH_SIGNING_POLICY_SLUG`,
      `SIGNPATH_ARTIFACT_CONFIGURATION_SLUG`.
 
-6. Pousser un tag (`git tag v1.0.3 && git push origin v1.0.3`) ou lancer le workflow
+6. Pousser un tag (`git tag 1.0.3 && git push origin 1.0.3`) ou lancer le workflow
    manuellement ("Run workflow" dans l'onglet Actions) : le job `build-windows`
    soumettra automatiquement `whb.exe` à SignPath, attendra la signature, et publiera
    la version signée dans la Release GitHub.
