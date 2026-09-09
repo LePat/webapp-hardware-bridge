@@ -77,6 +77,14 @@ jobs:
       - name: Install NSIS
         run: choco install nsis -y --no-progress
 
+      - name: Add NSIS to PATH
+        # Chocolatey's shim for makensis.exe isn't reliably picked up by the next
+        # step's process on hosted Windows runners - add its real install dir to
+        # GITHUB_PATH explicitly so `commandLine('makensis.exe', ...)` in
+        # build.gradle can find it.
+        shell: pwsh
+        run: echo "C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
       - name: Fetch escpos-tools (debug console POS-printer simulation)
         # Only staged into demo/ for the debug console to use at runtime on whoever
         # installs the app - not executed during this build, so runner-provided PHP/
